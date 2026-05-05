@@ -1,0 +1,55 @@
+<head>
+<meta charset="UTF-8">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Georgia','PingFang SC','Microsoft YaHei',serif;font-size:13px;color:#4a3520;line-height:1.6}
+.panel{background:linear-gradient(135deg,#f4e4c1,#e8d5a3,#dcc48e);border:2px solid #8b7355;border-radius:4px;padding:10px 14px;max-width:340px;box-shadow:3px 3px 10px rgba(80,50,20,0.25)}
+.panel::before{content:'';display:block;height:3px;background:linear-gradient(90deg,transparent,#a67c3e,#8b7355,#a67c3e,transparent);margin:-10px -14px 8px}
+.title{font-size:15px;font-weight:bold;color:#3e2a15;text-align:center;border-bottom:2px solid #c4a87a;padding-bottom:5px;margin-bottom:8px;letter-spacing:2px}
+.row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed #c4a87a}
+.row:last-child{border-bottom:none}
+.lb{color:#6b5535;font-weight:600}
+.vl{color:#3e2a15;font-weight:500;font-family:'Consolas','Courier New',monospace}
+.g .vl{color:#8b6914}
+.f .vl{color:#4a7a3a}
+.p .vl{color:#3a6a7a}
+.m .vl{color:#8a3a3a}
+.a .vl{color:#5a4a3a}
+.ft{margin-top:6px;padding-top:4px;border-top:1px solid #c4a87a;text-align:center;font-size:10px;color:#8a7a6a;font-style:italic;letter-spacing:1px}
+</style>
+<script type="module">
+async function init(){
+  await waitGlobalInitialized('Mvu');
+
+  function populate(){
+    const all=getAllVariables();
+    const t=_.get(all,'stat_data.领地',{});
+    document.getElementById('h-title').textContent=(t['名称']||'未命名')+' · '+(t['季节']||'春')+'季';
+    document.getElementById('h-gold').textContent=t['金币']||0;
+    document.getElementById('h-food').textContent=t['粮食']||0;
+    document.getElementById('h-pop').textContent=t['人口']||0;
+    document.getElementById('h-morale').textContent=t['民心']||0;
+    document.getElementById('h-army').textContent=(t['兵力']||0)+' · '+(t['装备']||'简陋');
+  }
+
+  populate();
+
+  eventOn(Mvu.events.VARIABLE_UPDATE_ENDED,()=>{
+    populate();
+  });
+}
+
+$(errorCatched(init));
+</script>
+</head>
+<body>
+<div class="panel">
+<div class="title" id="h-title">领地 · 春季</div>
+<div class="row g"><span class="lb">金币</span><span class="vl" id="h-gold">0</span></div>
+<div class="row f"><span class="lb">粮食</span><span class="vl" id="h-food">0</span></div>
+<div class="row p"><span class="lb">人口</span><span class="vl" id="h-pop">0</span></div>
+<div class="row m"><span class="lb">民心</span><span class="vl" id="h-morale">0</span></div>
+<div class="row a"><span class="lb">兵力</span><span class="vl" id="h-army">0</span></div>
+<div class="ft">山河在手，权柄在怀</div>
+</div>
+</body>
