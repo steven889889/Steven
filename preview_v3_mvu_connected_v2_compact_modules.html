@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="document-title">领地治理录 · MVU</title>
+<title id="document-title">边境领主议事录 · MVU</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=IM+Fell+English:ital@0;1&family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -369,17 +369,89 @@ body.is-scrolling .module-panel{animation:none!important;}
 .btn-defer{background:linear-gradient(180deg,#c9a247,#8a6520);color:#2a1a0a;border-color:#4a3010}
 .btn-stamp:not(:disabled):hover{transform:translateY(-1px)}
 
-/* 印章动画 */
-.stamp-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(3) rotate(-25deg);opacity:0;pointer-events:none;z-index:100;font-family:'Ma Shan Zheng',serif;width:100px;height:100px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:60px;font-weight:700}
-.stamp-overlay.approve{background:radial-gradient(circle at 30% 30%,rgba(201,56,40,.95),rgba(122,31,26,.9));color:#f4e4bc;border:4px double rgba(74,15,10,.9);box-shadow:inset -3px -3px 6px rgba(74,15,10,.6),inset 3px 3px 4px rgba(255,180,150,.3),0 6px 20px rgba(74,15,10,.6)}
-.stamp-overlay.reject{background:radial-gradient(circle at 30% 30%,rgba(60,40,30,.95),rgba(20,10,5,.95));color:#d4b482;border:3px solid rgba(0,0,0,.9);box-shadow:inset -3px -3px 6px rgba(0,0,0,.7),0 6px 20px rgba(0,0,0,.6)}
-.stamp-overlay.defer{width:74px;height:74px;font-size:40px;background:radial-gradient(circle at 30% 30%,rgba(201,162,71,.95),rgba(138,101,32,.9));color:#2a1a0a;border:3px solid rgba(74,48,16,.9)}
-.stamp-overlay.approve.active{animation:stampApprove .55s cubic-bezier(.25,.65,.4,1.05) forwards}
-.stamp-overlay.reject.active{animation:stampReject .55s cubic-bezier(.25,.65,.4,1.05) forwards}
-.stamp-overlay.defer.active{animation:stampDefer .45s cubic-bezier(.25,.65,.4,1.05) forwards}
-@keyframes stampApprove{0%{transform:translate(-50%,-220%) scale(3.5) rotate(-35deg);opacity:0}60%{transform:translate(-50%,-50%) scale(1.3) rotate(-12deg);opacity:1}100%{transform:translate(-50%,-50%) scale(1.1) rotate(-15deg);opacity:.95}}
-@keyframes stampReject{0%{transform:translate(-50%,-220%) scale(3.5) rotate(35deg);opacity:0}60%{transform:translate(-50%,-50%) scale(1.3) rotate(12deg);opacity:1}100%{transform:translate(-50%,-50%) scale(1.1) rotate(15deg);opacity:.95}}
-@keyframes stampDefer{0%{transform:translate(-50%,-180%) scale(2.5);opacity:0}60%{transform:translate(-50%,-50%) scale(1.1);opacity:1}100%{transform:translate(-50%,-50%) scale(1) rotate(8deg);opacity:.9}}
+/* 印章动画：方案 A —— 家徽火漆印 */
+.stamp-overlay{
+  position:absolute;top:50%;left:50%;
+  width:118px;height:118px;
+  transform:translate(-50%,-50%) scale(3.25) rotate(-18deg);
+  opacity:0;pointer-events:none;z-index:100;
+  display:block;
+  border-radius:53% 47% 51% 49% / 47% 52% 48% 53%;
+  isolation:isolate;
+}
+.stamp-overlay::before,
+.stamp-overlay::after{content:"";position:absolute;inset:0;pointer-events:none}
+.stamp-overlay::before{
+  border-radius:inherit;
+  background:
+    radial-gradient(circle at 28% 24%,rgba(255,228,196,.23),transparent 18%),
+    radial-gradient(circle at 72% 76%,rgba(58,12,10,.22),transparent 24%),
+    radial-gradient(circle at 50% 50%,var(--seal-mid) 0%,var(--seal-deep) 74%,var(--seal-edge) 100%);
+  box-shadow:
+    inset 0 2px 3px rgba(255,225,190,.16),
+    inset 0 -9px 12px rgba(54,10,10,.28),
+    0 10px 20px rgba(25,8,8,.30);
+  outline:1px solid rgba(52,16,13,.16);
+}
+.stamp-overlay::after{
+  inset:5px;
+  border-radius:52% 48% 50% 50% / 48% 51% 49% 52%;
+  box-shadow:inset 0 0 0 1px rgba(255,229,196,.12);
+  background:
+    radial-gradient(circle at 32% 30%,rgba(255,240,215,.08),transparent 20%),
+    radial-gradient(circle at 50% 50%,transparent 58%,rgba(60,16,13,.18) 58%,rgba(60,16,13,.18) 61%,transparent 61%,transparent 67%,rgba(245,218,188,.12) 67%,rgba(245,218,188,.12) 69%,transparent 69%);
+  mix-blend-mode:soft-light;
+}
+.stamp-overlay.approve{--seal-mid:#a12621;--seal-deep:#7a1f1a;--seal-edge:#5a110f}
+.stamp-overlay.reject{--seal-mid:#433230;--seal-deep:#261a19;--seal-edge:#130d0d}
+.stamp-overlay.defer{--seal-mid:#b78a34;--seal-deep:#8f6720;--seal-edge:#6a4a17;width:104px;height:104px}
+.seal-core{
+  position:absolute;inset:15px;z-index:2;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+}
+.seal-core::before,
+.seal-core::after{content:"";position:absolute;border-radius:50%;inset:0;pointer-events:none}
+.seal-core::before{
+  box-shadow:inset 0 0 0 2px rgba(78,22,18,.18), inset 0 0 0 8px transparent;
+}
+.seal-core::after{
+  inset:8px;
+  box-shadow:inset 0 0 0 1px rgba(248,228,198,.10),0 0 0 1px rgba(42,10,8,.09);
+}
+.seal-emblem{
+  position:relative;z-index:3;
+  width:56px;height:56px;
+  background-repeat:no-repeat;background-position:center;background-size:contain;
+  opacity:.92;
+  filter:drop-shadow(0 1px 0 rgba(255,226,196,.08));
+}
+.stamp-overlay.defer .seal-emblem{width:46px;height:46px}
+.seal-legend{
+  position:absolute;left:50%;transform:translateX(-50%);
+  z-index:3;
+  font-family:'Cinzel',serif;
+  font-size:7px;font-weight:700;letter-spacing:1.7px;
+  text-transform:uppercase;line-height:1;
+  color:rgba(246,230,203,.38);
+  text-shadow:0 1px 0 rgba(70,16,14,.10);
+  white-space:nowrap;pointer-events:none;
+}
+.seal-legend.top{top:12px}
+.seal-legend.bottom{bottom:12px}
+.stamp-overlay.defer .seal-legend{font-size:6.5px;letter-spacing:1.4px}
+.stamp-overlay.approve .seal-emblem,
+.stamp-overlay.reject .seal-emblem,
+.stamp-overlay.defer .seal-emblem{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='%23f0dec3'%3E%3Cpath d='M32 14c2.4-3.5 6.3-6.1 11.1-7.6-1.2 2.7-1.8 5.2-1.8 7.8 3-.6 5.6-1.8 8.1-3.7-1.1 3.9-3.4 7.3-7 10 2.3.3 4.6.1 6.9-.6-2.1 4.1-5.3 7.2-9.7 9.2l4.4 7.6-6.6-2.5-2.9 13H29l-2.9-13-6.6 2.5 4.4-7.6c-4.4-2-7.6-5.1-9.7-9.2 2.3.7 4.6.9 6.9.6-3.6-2.7-5.9-6.1-7-10 2.5 1.9 5.1 3.1 8.1 3.7 0-2.6-.6-5.1-1.8-7.8 4.8 1.5 8.7 4.1 11.1 7.6z'/%3E%3Cpath d='M24 20l8 7 8-7-3.3 8.2 4.6 3.3-6.1-.8L32 36l-3.2-5.3-6.1.8 4.6-3.3z' fill='%23d6b98f'/%3E%3Cpath d='M27 48h10v3H27z' fill='%23d6b98f'/%3E%3C/g%3E%3C/svg%3E");
+}
+.stamp-overlay.reject .seal-emblem{opacity:.78}
+.stamp-overlay.approve.active{animation:stampApprove .56s cubic-bezier(.2,.72,.35,1.06) forwards}
+.stamp-overlay.reject.active{animation:stampReject .56s cubic-bezier(.2,.72,.35,1.06) forwards}
+.stamp-overlay.defer.active{animation:stampDefer .46s cubic-bezier(.2,.72,.35,1.06) forwards}
+@keyframes stampApprove{0%{transform:translate(-50%,-220%) scale(3.5) rotate(-28deg);opacity:0}60%{transform:translate(-50%,-50%) scale(1.22) rotate(-14deg);opacity:1}74%{transform:translate(-50%,-47%) scale(1.04) rotate(-15deg)}100%{transform:translate(-50%,-50%) scale(1.08) rotate(-15deg);opacity:.97}}
+@keyframes stampReject{0%{transform:translate(-50%,-220%) scale(3.5) rotate(28deg);opacity:0}60%{transform:translate(-50%,-50%) scale(1.22) rotate(14deg);opacity:1}74%{transform:translate(-50%,-47%) scale(1.04) rotate(15deg)}100%{transform:translate(-50%,-50%) scale(1.08) rotate(15deg);opacity:.97}}
+@keyframes stampDefer{0%{transform:translate(-50%,-180%) scale(2.6) rotate(2deg);opacity:0}60%{transform:translate(-50%,-50%) scale(1.1) rotate(7deg);opacity:1}100%{transform:translate(-50%,-50%) scale(1) rotate(8deg);opacity:.94}}
 .ink-strike{position:absolute;top:50%;left:-10%;width:120%;height:6px;background:linear-gradient(90deg,transparent 0%,rgba(20,10,5,.95) 20%,rgba(20,10,5,.95) 80%,transparent 100%);transform:rotate(-8deg) scaleX(0);transform-origin:left;pointer-events:none;z-index:99;filter:blur(.5px);border-radius:3px}
 .ink-strike.active{animation:inkStrike .35s ease-out .2s forwards}
 @keyframes inkStrike{to{transform:rotate(-8deg) scaleX(1);opacity:.85}}
@@ -402,7 +474,7 @@ body.is-scrolling .module-panel{animation:none!important;}
 .empty-edicts .big{font-size:22px;letter-spacing:5px;margin-bottom:6px;color:var(--ink-soft)}
 .empty-edicts .sub{font-family:'IM Fell English',serif;font-style:italic;font-size:13px;letter-spacing:2px}
 
-/* 领主特权卡片 */
+/* 领主权柄卡片 */
 .privilege-card{
   flex:0 0 200px;min-height:260px;
   background:linear-gradient(135deg,rgba(168,132,42,.2),rgba(122,31,26,.1));
@@ -873,6 +945,146 @@ body.is-scrolling .module-panel{animation:none!important;}
   .vital-value{font-size:19px}
   .dept-tab{min-height:68px}
 }
+
+
+/* ============================================ */
+/* ★ v4 资源仓压缩版：短，但保留囤积重量 ★ */
+/* ============================================ */
+.vital-zone{
+  padding:7px 8px;
+  margin-bottom:10px;
+  border-color:rgba(120,80,40,.26);
+}
+.vital-zone::before{
+  font-size:42px;
+  opacity:.7;
+}
+.vital-row,
+.vital-row.minor{
+  display:grid;
+  gap:6px;
+  margin-bottom:6px;
+}
+.vital-row{grid-template-columns:repeat(3,minmax(0,1fr));}
+.vital-row.minor{grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:0;}
+.vital{
+  min-height:58px;
+  padding:6px 8px 6px;
+  justify-content:center;
+  border-radius:2px;
+}
+.vital::after{
+  content:"";
+  position:absolute;
+  right:6px;bottom:4px;
+  width:34px;height:22px;
+  opacity:.08;
+  pointer-events:none;
+  background:radial-gradient(circle at 20% 80%,var(--bar2,#8a6520),transparent 65%);
+}
+.vital-head{
+  margin-bottom:1px;
+  font-size:9.8px;
+  letter-spacing:1.4px;
+}
+.vital-name{gap:3px;}
+.vital-name .icon{font-size:12px;}
+.vital-trend{font-size:10px;}
+.vital-mainline{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:6px;
+  min-width:0;
+}
+.vital-value{
+  font-size:18px;
+  margin:0;
+  line-height:1.03;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.vital-value .total{font-size:9.2px;}
+.vital-status{
+  font-family:'Ma Shan Zheng',serif;
+  font-size:11.2px;
+  letter-spacing:1.6px;
+  color:var(--ink-soft);
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.vital-progress{
+  height:4px;
+  margin:3px 0 2px;
+}
+.vital-progress::after{left:82%;}
+.vital-foot{
+  margin-top:0;
+  font-size:9.8px;
+  line-height:1.15;
+}
+.vital-foot .runway{font-size:9.8px;}
+.morale-tag{
+  font-size:11px;
+  letter-spacing:1.8px;
+  padding:0 5px;
+}
+
+/* 领主权柄：从展示卡改为行政命令按钮 */
+.privilege-card{
+  flex:0 0 174px;
+  min-height:142px;
+  padding:11px 10px 10px;
+  justify-content:flex-start;
+  text-align:left;
+  border-color:rgba(168,132,42,.72);
+}
+.privilege-card .icon{
+  font-size:25px;
+  margin:0 0 6px;
+}
+.privilege-card .name{
+  font-size:14px;
+  line-height:1.2;
+  margin-bottom:5px;
+  letter-spacing:2px;
+}
+.privilege-card .desc{
+  font-family:'ZCOOL XiaoWei',serif;
+  font-style:normal;
+  font-size:10.8px;
+  line-height:1.42;
+  margin-bottom:7px;
+  color:var(--ink-soft);
+}
+.privilege-card .cost{
+  margin-top:auto;
+  font-size:10.5px;
+  color:var(--rust);
+}
+.privilege-card .prompt-preview{
+  margin-top:6px;
+  padding:4px 6px;
+  background:rgba(80,40,10,.06);
+  border-left:2px solid var(--gold);
+  font-family:'ZCOOL XiaoWei',serif;
+  font-size:10.2px;
+  line-height:1.35;
+  color:var(--ink-fade);
+}
+
+@media(max-width:720px){
+  .vital-row{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .vital-row.minor{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .privilege-card{flex-basis:156px;}
+}
+@media(max-width:430px){
+  .vital-row,.vital-row.minor{grid-template-columns:1fr;}
+  .vital{min-height:54px;}
+}
+
 </style>
 </head>
 <body>
@@ -881,8 +1093,8 @@ body.is-scrolling .module-panel{animation:none!important;}
 
   <!-- 卷首 -->
   <header class="top-title">
-    <div class="title-cn" id="domain-title">领 地 治 理 录</div>
-    <div class="title-en">Ducal Governance Ledger · Border Town</div>
+    <div class="title-cn" id="domain-title">边 境 议 事 录</div>
+    <div class="title-en">Lordship Council Ledger · Border March</div>
     <div class="chrono-line">
       <span>📜 <span id="time-display">—</span></span>
       <span><span id="weather-icon">☀️</span> <span id="weather-text">—</span></span>
@@ -896,18 +1108,18 @@ body.is-scrolling .module-panel{animation:none!important;}
     <div class="vital-row minor" id="vital-minor"></div>
   </section>
 
-  <!-- ★ 政务厅 永驻 -->
+  <!-- ★ 领主议事厅 永驻 -->
   <section class="govern-zone">
-    <div class="heart-mark">❤ COR REGNI · 王国之心</div>
+    <div class="heart-mark">❤ HEART OF THE DEMESNE · 领地之心</div>
     <span class="corner-tl"></span><span class="corner-tr"></span><span class="corner-bl"></span><span class="corner-br"></span>
 
     <div class="govern-header">
       <div class="seal">📜</div>
       <div>
-        <div class="govern-title">政 务 厅</div>
-        <div class="govern-title-en">Chancellery · Official Edicts</div>
+        <div class="govern-title">领 主 议 事 厅</div>
+        <div class="govern-title-en">Council Hall · Petitions & Seals</div>
       </div>
-      <div class="govern-extra">今 日 待 阅 <span class="badge" id="badge-count">0</span></div>
+      <div class="govern-extra">待 决 请 愿 <span class="badge" id="badge-count">0</span></div>
     </div>
 
     <div class="gov-tabs" id="gov-tabs"></div>
@@ -1271,11 +1483,83 @@ async function waitForMvuReady(){
   syncMvuOnce();
 }
 
-async function sendActionToAI(action, edictId, edictTitle, witchName){
-  const map = { approve:'朱批', reject:'驳回', defer:'暂缓', privilege:'颁布', witch_assign:'派遣' };
-  const text = `[领主决断] ${map[action]||action}${edictTitle ? ` · ${edictTitle}` : ''}${witchName?` · 派遣「${witchName}」`:''}`;
+function findChatInput(){
+  const selectors = [
+    '#send_textarea',
+    'textarea#send_textarea',
+    'textarea[name="send_textarea"]',
+    '#chat_message',
+    'textarea[placeholder]',
+    'textarea',
+    '[contenteditable="true"]'
+  ];
+  const docs = [document];
+  try {
+    if (window.parent && window.parent !== window && window.parent.document) docs.push(window.parent.document);
+  } catch (err) {
+    console.warn('[HUD] parent document is not accessible:', err);
+  }
+  for (const doc of docs) {
+    for (const sel of selectors) {
+      const nodes = Array.from(doc.querySelectorAll(sel));
+      const visible = nodes.find(n => !n.disabled && !n.readOnly && (n.offsetParent !== null || n === doc.activeElement));
+      if (visible) return visible;
+      if (nodes[0] && !nodes[0].disabled && !nodes[0].readOnly) return nodes[0];
+    }
+  }
+  return null;
+}
+
+function writeToChatInput(text, options = {}){
+  const input = findChatInput();
+  const marker = options.caretMarker || '';
+  let localCaret = text.length;
+  if (marker) {
+    const markerIndex = text.indexOf(marker);
+    if (markerIndex !== -1) localCaret = markerIndex + Math.floor(marker.length / 2);
+  }
+
+  if (!input) {
+    console.log('[HUD] chat input not found, command draft:', text);
+    showCombo('命令草稿已生成','未找到酒馆输入框，请查看控制台草稿','bad');
+    return false;
+  }
+
+  const isEditable = input.isContentEditable;
+  const current = isEditable ? input.textContent : input.value;
+  const prefix = current && current.trim() ? current.replace(/\s*$/,'') + '\n' : '';
+  const finalText = prefix + text;
+  const caret = prefix.length + localCaret;
+
+  if (isEditable) {
+    input.textContent = finalText;
+    input.focus();
+    const range = document.createRange();
+    const selection = window.getSelection();
+    range.selectNodeContents(input);
+    range.collapse(false);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  } else {
+    input.value = finalText;
+    input.focus();
+    if (typeof input.setSelectionRange === 'function') {
+      input.setSelectionRange(caret, caret);
+    }
+  }
+
+  input.dispatchEvent(new Event('input', { bubbles:true }));
+  input.dispatchEvent(new Event('change', { bubbles:true }));
+  showCombo(options.title || '命令草稿已写入', options.effect || '已写入酒馆输入框，补全后即可发送','good');
+  return true;
+}
+
+async function sendActionToAI(action, edictId, edictTitle, witchName, draftText){
+  const map = { approve:'准允', reject:'驳回', defer:'搁置', privilege:'告示', witch_assign:'委任', witch_talk:'请入议事厅', witch_dispatch:'委任', witch_rest:'安置' };
+  const text = draftText || `[领主裁定] ${map[action]||action}${edictTitle ? ` · ${edictTitle}` : ''}${witchName?` · 委任「${witchName}」`:''}`;
   console.log('[HUD] action:', text);
-  // 这里只做前端提示和日志。真正变量变动仍交给下一轮 AI 输出 <UpdateVariable> 后由 MVU 写入 stat_data。
+  if (draftText) writeToChatInput(draftText);
+  // 这里只做前端提示和输入框草稿。真正变量变动仍交给下一轮 AI 输出 <UpdateVariable> 后由 MVU 写入 stat_data。
 }
 
 function setupMvuListener(){
@@ -1290,7 +1574,7 @@ function spacedCn(text){
 function renderHeader(){
   const lord = gameData.领主 || {};
   const land = gameData.领地 || {};
-  const title = land.$治理题名 || `${land.名称 || '未命名领地'}治理录`;
+  const title = land.$治理题名 || `${land.名称 || '未命名领地'}议事录`;
   const lordName = lord.$称谓 || lord.名称 || '未命名领主';
   const landName = land.名称 || '未命名领地';
 
@@ -1298,11 +1582,11 @@ function renderHeader(){
   if (titleNode) titleNode.textContent = spacedCn(title);
   const enNode = $('#domain-title-en');
   if (enNode) enNode.textContent = `${land.等级 || 'DOMAIN'} · ${land.风格 || 'ARCHIVE'}`.toUpperCase();
-  if (typeof document !== 'undefined') document.title = `${landName}治理录 · MVU`;
+  if (typeof document !== 'undefined') document.title = `${landName}议事录 · MVU`;
 
   const sig = $('#signature');
   if (sig) {
-    sig.innerHTML = `封缄于${escapeHtml(landName)} · ${escapeHtml(lordName)} 亲笔
+    sig.innerHTML = `封存于${escapeHtml(landName)} · ${escapeHtml(lordName)} 以领主印封缄
       <span style="display:inline-block;width:22px;height:22px;background:radial-gradient(circle at 35% 30%,#a83228,#7a1f1a 70%,#4a0f0a);border-radius:50%;vertical-align:middle;margin-left:8px;transform:rotate(12deg)"></span>`;
   }
 }
@@ -1334,88 +1618,120 @@ function renderTimeBar(){
 function renderVitals(){
   const r = gameData.核心资源;
 
-  // 趋势箭头
   const trend = (delta, neutral=0) => {
     if (delta > neutral) return { cls:'up', arrow:'↑', text:`+${delta}/周` };
     if (delta < -neutral) return { cls:'down', arrow:'↓', text:`${delta}/周` };
     return { cls:'flat', arrow:'→', text:'稳定' };
   };
 
-  // 主排：粮食 / 人口 / 劳力
+  const statusClass = flag => flag === 'crit' ? 'crit' : flag === 'warn' ? 'warn' : '';
+  const pct = v => Math.max(0, Math.min(100, Math.round(Number(v) || 0)));
+
   const foodTrend = trend(r.粮食周净产);
   const popTrend = trend(r.人口周增);
-  const laborOk = r.空闲劳力;
+  const goldTrend = trend(r.猫币周净);
 
+  const foodStatus = r.$粮食警戒 === 'crit' ? '粮仓见底'
+                   : r.$粮食警戒 === 'warn' ? '冬储吃紧'
+                   : r.粮食周净产 < 0 ? '缓慢消耗'
+                   : '粮仓渐满';
   const foodRunway = r.$粮食警戒 === 'crit' ? `仅余 ${r.$可支撑日数} 日`
-                   : r.$粮食警戒 === 'warn' ? `撑 ${r.$可支撑日数} 日`
-                   : r.粮食周净产 < 0 ? `撑 ${r.$可支撑日数} 日` : '充裕';
+                   : r.$粮食警戒 === 'warn' ? `可撑 ${r.$可支撑日数} 日`
+                   : r.粮食周净产 < 0 ? `可撑 ${r.$可支撑日数} 日` : '仓廪充足';
+
+  const popStatus = r.$人口警戒 === 'crit' ? '屋舍已满'
+                  : r.$人口警戒 === 'warn' ? '街巷渐挤'
+                  : r.人口周增 > 0 ? '人烟渐旺' : '户籍稳定';
+  const laborBusy = Math.max(0, (Number(r.劳力总数)||0) - (Number(r.空闲劳力)||0));
+  const laborStatus = r.$劳力警戒 === 'crit' ? '人手过载'
+                    : r.$劳力警戒 === 'warn' ? '人手紧张'
+                    : r.空闲劳力 > 0 ? '可再调派' : '人尽其用';
+  const goldStatus = r.猫币 < 50 ? '府库告急'
+                   : r.猫币 < 150 ? '账房吃紧'
+                   : r.猫币周净 > 0 ? '税银入库' : '钱袋沉甸';
+  const moraleStatus = gameData.民心 < 25 ? '民怨沸腾'
+                    : gameData.民心 < 50 ? '民怨暗涌'
+                    : gameData.民心 < 80 ? '秩序尚稳' : '众心归附';
 
   $('#vital-major').innerHTML = `
-    <div class="vital food ${r.$粮食警戒 === 'crit' ? 'crit' : r.$粮食警戒 === 'warn' ? 'warn' : ''}">
+    <div class="vital food ${statusClass(r.$粮食警戒)}" title="粮仓储量：${r.粮食.toLocaleString()} / ${r.粮食上限.toLocaleString()} 石 · 本周 ${r.粮食周净产}">
       <div class="vital-head">
-        <span class="vital-name"><span class="icon">🍞</span>粮 食</span>
+        <span class="vital-name"><span class="icon">🌾</span>粮 食</span>
         <span class="vital-trend ${foodTrend.cls}">${foodTrend.arrow} ${foodTrend.text}</span>
       </div>
-      <div class="vital-value" id="food-val">${r.粮食.toLocaleString()}<span class="total"> / ${r.粮食上限.toLocaleString()} 石</span></div>
-      <div class="vital-progress" style="--p:${r.$粮食占比}%"></div>
+      <div class="vital-mainline">
+        <div class="vital-value" id="food-val">${r.粮食.toLocaleString()}<span class="total"> / ${r.粮食上限.toLocaleString()}</span></div>
+        <div class="vital-status">${foodStatus}</div>
+      </div>
+      <div class="vital-progress" style="--p:${pct(r.$粮食占比)}%"></div>
       <div class="vital-foot">
-        <span>仓储 ${Math.round(r.$粮食占比)}%</span>
+        <span>仓储 ${pct(r.$粮食占比)}%</span>
         <span class="runway ${r.$粮食警戒}">⏳ ${foodRunway}</span>
       </div>
     </div>
 
-    <div class="vital pop ${r.$人口警戒 === 'crit' ? 'crit' : r.$人口警戒 === 'warn' ? 'warn' : ''}">
+    <div class="vital pop ${statusClass(r.$人口警戒)}" title="人口：${r.人口} / ${r.人口上限} · 本周 ${r.人口周增 >= 0 ? '+' : ''}${r.人口周增}">
       <div class="vital-head">
         <span class="vital-name"><span class="icon">👥</span>人 口</span>
         <span class="vital-trend ${popTrend.cls}">${popTrend.arrow} ${popTrend.text}</span>
       </div>
-      <div class="vital-value" id="pop-val">${r.人口}<span class="total"> / ${r.人口上限} 上限</span></div>
-      <div class="vital-progress" style="--p:${r.$人口占比}%"></div>
+      <div class="vital-mainline">
+        <div class="vital-value" id="pop-val">${r.人口}<span class="total"> / ${r.人口上限}</span></div>
+        <div class="vital-status">${popStatus}</div>
+      </div>
+      <div class="vital-progress" style="--p:${pct(r.$人口占比)}%"></div>
       <div class="vital-foot">
-        <span>居住 ${Math.round(r.$人口占比)}%</span>
-        <span class="runway ${r.$人口警戒}">${r.$人口警戒 === 'crit' ? '⚠ 已满载' : r.$人口警戒 === 'warn' ? '⚠ 接近上限' : '尚可接纳'}</span>
+        <span>居住 ${pct(r.$人口占比)}%</span>
+        <span class="runway ${r.$人口警戒}">${r.$人口警戒 === 'crit' ? '⚠ 扩建迫切' : r.$人口警戒 === 'warn' ? '⚠ 接近上限' : '尚可接纳'}</span>
       </div>
     </div>
 
-    <div class="vital labor ${r.$劳力警戒 === 'crit' ? 'crit' : r.$劳力警戒 === 'warn' ? 'warn' : ''}">
+    <div class="vital labor ${statusClass(r.$劳力警戒)}" title="劳力：已用 ${laborBusy} / 总数 ${r.劳力总数} · 空闲 ${r.空闲劳力}">
       <div class="vital-head">
-        <span class="vital-name"><span class="icon">💪</span>劳 动 力</span>
+        <span class="vital-name"><span class="icon">🛠️</span>劳 动 力</span>
         <span class="vital-trend flat">空闲 ${r.空闲劳力}</span>
       </div>
-      <div class="vital-value" id="labor-val">${r.劳力总数 - r.空闲劳力}<span class="total"> / ${r.劳力总数} 总数</span></div>
-      <div class="vital-progress" style="--p:${r.$劳力占比}%"></div>
+      <div class="vital-mainline">
+        <div class="vital-value" id="labor-val">${laborBusy}<span class="total"> / ${r.劳力总数}</span></div>
+        <div class="vital-status">${laborStatus}</div>
+      </div>
+      <div class="vital-progress" style="--p:${pct(r.$劳力占比)}%"></div>
       <div class="vital-foot">
-        <span>占用 ${Math.round(r.$劳力占比)}%</span>
-        <span class="runway ${r.$劳力警戒}">${r.$劳力警戒 === 'crit' ? '⚠ 已过载' : r.$劳力警戒 === 'warn' ? '⚠ 紧张' : '人手充足'}</span>
+        <span>占用 ${pct(r.$劳力占比)}%</span>
+        <span class="runway ${r.$劳力警戒}">${r.$劳力警戒 === 'crit' ? '⚠ 已过载' : r.$劳力警戒 === 'warn' ? '⚠ 紧张' : '调度可控'}</span>
       </div>
     </div>
   `;
 
-  // 副排：猫币 / 民心
-  const goldTrend = trend(r.猫币周净);
   $('#vital-minor').innerHTML = `
-    <div class="vital gold ${r.$猫币警戒 === 'crit' ? 'crit' : r.$猫币警戒 === 'warn' ? 'warn' : ''}">
+    <div class="vital gold ${statusClass(r.$猫币警戒)}" title="府库猫币：${r.猫币.toLocaleString()} · 本周 ${r.猫币周净 >= 0 ? '+' : ''}${r.猫币周净}">
       <div class="vital-head">
-        <span class="vital-name"><span class="icon">🐱</span>猫 币</span>
+        <span class="vital-name"><span class="icon">💰</span>猫 币</span>
         <span class="vital-trend ${goldTrend.cls}">${goldTrend.arrow} ${goldTrend.text}</span>
       </div>
-      <div class="vital-value" id="gold-val">${r.猫币.toLocaleString()}<span class="total"> 猫币</span></div>
+      <div class="vital-mainline">
+        <div class="vital-value" id="gold-val">${r.猫币.toLocaleString()}<span class="total"> 枚</span></div>
+        <div class="vital-status">${goldStatus}</div>
+      </div>
       <div class="vital-foot">
-        <span>${r.猫币 < 50 ? '府库告急' : r.猫币 < 150 ? '府库尚薄' : '府库充盈'}</span>
-        <span class="runway ${r.$猫币警戒}">${r.猫币周净 < 0 ? '赤字运转' : r.猫币周净 > 0 ? '正在积蓄' : '收支平衡'}</span>
+        <span>${r.猫币周净 < 0 ? '赤字运转' : r.猫币周净 > 0 ? '正在积蓄' : '收支平衡'}</span>
+        <span class="runway ${r.$猫币警戒}">${r.$猫币警戒 === 'crit' ? '需开源' : r.$猫币警戒 === 'warn' ? '慎批开销' : '府库可用'}</span>
       </div>
     </div>
 
-    <div class="vital morale ${gameData.$民心警戒 === 'crit' ? 'crit' : gameData.$民心警戒 === 'warn' ? 'warn' : ''}">
+    <div class="vital morale ${statusClass(gameData.$民心警戒)}" title="民心：${gameData.民心} / 100 · ${gameData.$民心阶段}">
       <div class="vital-head">
         <span class="vital-name"><span class="icon">❤</span>民 心</span>
         <span class="morale-tag ${gameData.$民心阶段}">${gameData.$民心阶段}</span>
       </div>
-      <div class="vital-value" id="morale-val">${gameData.民心}<span class="total"> / 100</span></div>
-      <div class="vital-progress" style="--p:${gameData.民心}%"></div>
+      <div class="vital-mainline">
+        <div class="vital-value" id="morale-val">${gameData.民心}<span class="total"> / 100</span></div>
+        <div class="vital-status">${moraleStatus}</div>
+      </div>
+      <div class="vital-progress" style="--p:${pct(gameData.民心)}%"></div>
       <div class="vital-foot">
-        <span>${gameData.民心 < 25 ? '民怨沸腾' : gameData.民心 < 50 ? '民怨暗涌' : gameData.民心 < 80 ? '秩序尚稳' : '众心归附'}</span>
-        <span class="runway ${gameData.$民心警戒}">${gameData.$民心警戒 === 'crit' ? '需立刻安抚' : gameData.$民心警戒 === 'warn' ? '留意怨气' : '治理可控'}</span>
+        <span>${gameData.民心 < 50 ? '需安抚民情' : '政令尚行'}</span>
+        <span class="runway ${gameData.$民心警戒}">${gameData.$民心警戒 === 'crit' ? '立刻安抚' : gameData.$民心警戒 === 'warn' ? '留意怨气' : '治理可控'}</span>
       </div>
     </div>
   `;
@@ -1453,7 +1769,7 @@ function renderGovern(){
     const isUrgent = urgentTabs.has(t.key);
     return `
       <div class="gov-tab ${isActive ? 'active' : ''} ${isUrgent ? 'urgent' : ''}" data-gov-tab="${t.key}">
-        <span>${t.icon}</span><span>${t.key === '特权' ? '领 主 特 权' : t.key.split('').join(' ')}</span>
+        <span>${t.icon}</span><span>${t.key === '特权' ? '领 主 权 柄' : t.key.split('').join(' ')}</span>
         ${t.key !== '特权' ? `<span class="mini-count">${count}</span>` : ''}
       </div>
     `;
@@ -1497,8 +1813,8 @@ function renderEdicts(){
     scroll.dataset.virtual = '0';
     scroll.innerHTML = `
       <div class="empty-edicts">
-        <div class="big">— 暂 无 ${currentGovTab} 事 务 禀 报 —</div>
-        <div class="sub">境内清平，可治他务</div>
+        <div class="big">— 暂 无 ${currentGovTab} 请 愿 呈 报 —</div>
+        <div class="sub">厅中暂静，可查他卷</div>
       </div>`;
     updateScrollButtons();
     return;
@@ -1576,50 +1892,85 @@ function buildEdictCard(id, e){
         <span class="deadline ${deadlineCls}">⏳ 剩余 ${e.剩余日} 日</span>
       </div>
       <div class="edict-title">${escapeHtml(e.标题)}</div>
-      <div class="edict-petitioner">${escapeHtml(e.呈报人)}</div>
+      <div class="edict-petitioner">${escapeHtml(String(e.呈报人 || '').replace(/^呈报人：/,'呈递者：'))}</div>
       <div class="edict-meta">
-        <div class="meta-line"><span class="meta-label">耗：</span><span class="meta-cost">${escapeHtml(e.耗)}</span></div>
-        <div class="meta-line"><span class="meta-label">益：</span><span class="meta-gain">${escapeHtml(e.益)}</span></div>
-        ${e.远期 && e.远期 !== '—' ? `<div class="meta-line"><span class="meta-label">远：</span><span class="meta-longterm">${escapeHtml(e.远期)}</span></div>` : ''}
+        <div class="meta-line"><span class="meta-label">代价：</span><span class="meta-cost">${escapeHtml(e.耗)}</span></div>
+        <div class="meta-line"><span class="meta-label">收益：</span><span class="meta-gain">${escapeHtml(e.益)}</span></div>
+        ${e.远期 && e.远期 !== '—' ? `<div class="meta-line"><span class="meta-label">后续：</span><span class="meta-longterm">${escapeHtml(e.远期)}</span></div>` : ''}
       </div>
       <div class="edict-quote">${escapeHtml(e.台词)}</div>
       ${witchHint}
       <div class="edict-actions">
-        <button class="btn-stamp btn-approve" data-edict-id="${id}" data-edict-action="approve"><span>✓</span>朱批</button>
+        <button class="btn-stamp btn-approve" data-edict-id="${id}" data-edict-action="approve"><span>✓</span>准允</button>
         <button class="btn-stamp btn-reject" data-edict-id="${id}" data-edict-action="reject"><span>✗</span>驳回</button>
-        <button class="btn-stamp btn-defer" data-edict-id="${id}" data-edict-action="defer"><span>⏸</span>暂缓</button>
+        <button class="btn-stamp btn-defer" data-edict-id="${id}" data-edict-action="defer"><span>⏸</span>搁置</button>
       </div>
     </div>
   `;
 }
 
 function renderPrivileges(){
+  const r = gameData.核心资源 || {};
+  const pop = Number(r.人口) || 0;
+  const festivalGold = Math.max(40, Math.ceil(pop * 2));
+  const festivalFood = Math.max(30, Math.ceil(pop * 1.5));
   const items = [
-    { icon:'📜', name:'颁 布 法 令', desc:'改变长期规则', cost:'民心震荡', locked:false },
-    { icon:'🔮', name:'召 见 女 巫', desc:'触发专属剧情', cost:'1日时间', locked:false },
-    { icon:'🐎', name:'巡 视 领 地', desc:'民心+5 但奏章堆积', cost:'3日不在城', locked:false },
-    { icon:'🍷', name:'举 办 节 庆', desc:'盛大庆典凝聚民心', cost:'粮食 200 · 猫币 100', locked:false },
-    { icon:'⚔️', name:'御 驾 亲 征', desc:'直面魔鬼月入侵', cost:'风险极高', locked:false },
-    { icon:'🤐', name:'秘 密 赦 免', desc:'救一名待审女巫', cost:'教会威胁 +15', locked:true },
+    { key:'edict', icon:'📜', name:'张 贴 告 示', desc:'由书记官誊写公告，交至镇口与教堂门前张贴。', cost:'草拟告示内容', preview:'以领主之名，向全境张贴告示：' },
+    { key:'summon', icon:'🔮', name:'请 入 议 事 厅', desc:'请某位女巫或臣属入厅，听取私下汇报。', cost:'消耗半日注意力', preview:'请至议事厅：' },
+    { key:'patrol', icon:'🐎', name:'巡 查 边 境', desc:'领主骑马巡行三日，沿途收集民情、隐患与新请愿。', cost:'巡查三日', preview:'骑马巡查边境三日' },
+    { key:'festival', icon:'🎭', name:'筹 备 庆 宴', desc:'开放广场与酒馆，以金库和粮仓换取民心。', cost:`预计 ${festivalGold}猫币 · ${festivalFood}粮食`, preview:'筹备「」庆典' },
   ];
   return items.map(p => `
-    <div class="privilege-card ${p.locked?'locked':''}" data-privilege="${p.name.replace(/ /g,'')}">
+    <div class="privilege-card" data-privilege="${p.key}">
       <span class="icon">${p.icon}</span>
       <div class="name">${p.name}</div>
       <div class="desc">${p.desc}</div>
-      <div class="cost">${p.locked ? '🔒 未解锁' : p.cost}</div>
+      <div class="prompt-preview">${p.preview}</div>
+      <div class="cost">${p.cost}</div>
     </div>
   `).join('');
 }
 
-function handlePrivilege(name){
-  sendActionToAI('privilege', null, name);
+function handlePrivilege(key){
+  const r = gameData.核心资源 || {};
+  const pop = Number(r.人口) || 0;
+  const festivalGold = Math.max(40, Math.ceil(pop * 2));
+  const festivalFood = Math.max(30, Math.ceil(pop * 1.5));
+  const drafts = {
+    edict: {
+      text:'以领主之名，向全境张贴告示：',
+      title:'告示草案已备好',
+      effect:'补完告示内容后发送'
+    },
+    summon: {
+      text:'请至议事厅：',
+      title:'议事厅传唤已备好',
+      effect:'填入女巫或臣属姓名'
+    },
+    patrol: {
+      text:'领主亲自骑马巡查边境三日，请结算沿途民情、隐患与新增请愿。',
+      title:'巡查行程已写入',
+      effect:'三日民情、隐患与请愿将交由AI结算'
+    },
+    festival: {
+      text:`从金库支出约${festivalGold}猫币、从粮仓拨出${festivalFood}粮食，在镇广场筹备「」庆典。`,
+      marker:'「」',
+      title:'庆典筹备已写入',
+      effect:'在书名号中填入庆典名称'
+    }
+  };
+  const draft = drafts[key];
+  if (!draft) return;
+  writeToChatInput(draft.text, { caretMarker:draft.marker, title:draft.title, effect:draft.effect });
+  console.log('[领主权柄]', key, draft.text);
 }
 
 function handleWitchAssign(edictId){
   const e = gameData.奏章[edictId];
-  console.log('[派遣女巫]', e?.标题, e?.派女巫);
-  sendActionToAI('witch_assign', edictId, e?.标题);
+  const hint = e?.派女巫 ? `，书记官附注：${e.派女巫}` : '';
+  const text = `委任一名女巫协助处理请愿「${e?.标题 || '未命名请愿'}」${hint}。`;
+  console.log('[委任女巫]', e?.标题, e?.派女巫);
+  writeToChatInput(text, { title:'委任状已写入', effect:'可补充具体人选后发送' });
 }
 
 function scrollEdicts(direction){
@@ -1655,18 +2006,20 @@ function handleAction(id, action){
 
   const stamp = document.createElement('div');
   stamp.className = `stamp-overlay ${action}`;
+  stamp.innerHTML = `
+    <div class="seal-legend top">SIGILLUM</div>
+    <div class="seal-core"><div class="seal-emblem"></div></div>
+    <div class="seal-legend bottom">BORDER MARCH</div>
+  `;
   if (action === 'approve') {
-    stamp.textContent = '准';
     card.classList.add('glow-approve');
   } else if (action === 'reject') {
-    stamp.textContent = '驳';
     card.classList.add('glow-reject');
     const strike = document.createElement('div');
     strike.className = 'ink-strike';
     card.appendChild(strike);
     setTimeout(() => strike.classList.add('active'), 100);
   } else {
-    stamp.textContent = '缓';
     card.classList.add('glow-defer');
   }
   card.appendChild(stamp);
@@ -1756,12 +2109,12 @@ function flashVital(elId, delta){
 function checkCombo(){
   const last5 = recentActions.slice(-5), last3 = recentActions.slice(-3);
   if (last5.length === 5 && last5.every(a => a === 'approve')) {
-    showCombo('文牍流转，井井有条','内务大臣文书官颔首微笑 · 民心 +1','good');
+    showCombo('议事厅秩序井然','书记官低声称赞 · 民心 +1','good');
     gameData.民心 = clamp(gameData.民心 + 1);
     recentActions = []; renderVitals();
   }
   if (last3.length === 3 && last3.every(a => a === 'reject')) {
-    showCombo('今日心情似乎不佳','侍从们噤若寒蝉 · 民心 -1','bad');
+    showCombo('大厅骤然安静','侍从退入烛影 · 民心 -1','bad');
     gameData.民心 = clamp(gameData.民心 - 1);
     recentActions = []; renderVitals();
   }
@@ -1769,7 +2122,7 @@ function checkCombo(){
     const total = gameData.政务厅.本场统计.朱批 + gameData.政务厅.本场统计.驳回 + gameData.政务厅.本场统计.暂缓;
     if (total >= 3) {
       setTimeout(() => {
-        showCombo('勤勤恳恳，君主典范','政务尽毕，威望提升 · 民心 +2','good');
+        showCombo('领主印已落尽','本日请愿已清 · 民心 +2','good');
         gameData.民心 = clamp(gameData.民心 + 2);
         renderVitals();
       }, 200);
@@ -2066,9 +2419,9 @@ const WitchModule = {
         <div class="witch-clue">${escapeHtml(w.剧情线索 || '尚无线索可考。')}</div>
 
         <div class="witch-actions">
-          <button class="witch-btn primary" data-witch-action="talk" data-witch-name="${escapeHtml(name)}">私 下 召 见</button>
-          <button class="witch-btn" data-witch-action="dispatch" data-witch-name="${escapeHtml(name)}" ${canAct?'':'disabled'}>派 遣 任 务</button>
-          <button class="witch-btn" data-witch-action="rest" data-witch-name="${escapeHtml(name)}">${['tired','injured'].includes(uiState)?'安 排 休 整':'查 看 详 情'}</button>
+          <button class="witch-btn primary" data-witch-action="talk" data-witch-name="${escapeHtml(name)}">入 厅 密 谈</button>
+          <button class="witch-btn" data-witch-action="dispatch" data-witch-name="${escapeHtml(name)}" ${canAct?'':'disabled'}>授 予 委 任</button>
+          <button class="witch-btn" data-witch-action="rest" data-witch-name="${escapeHtml(name)}">${['tired','injured'].includes(uiState)?'准 其 休 养':'查 阅 卷 宗'}</button>
         </div>
       </div>
     `;
@@ -2087,13 +2440,13 @@ const WitchModule = {
       lines.push(`<span class="person">${injured[0]}</span> 重伤未愈，建议派至医馆静养，避免外勤。`);
     }
     if (tired) {
-      lines.push(`<span class="person">${tired[0]}</span> 状态疲惫，<span class="em">本周不应再派遣任务</span>。可去医馆休整，或赏赐安抚。`);
+      lines.push(`<span class="person">${tired[0]}</span> 状态疲惫，<span class="em">本周不宜再受委任</span>。可去医馆休整，或赐予安抚。`);
     }
     if (lowTrust) {
       lines.push(`<span class="person">${lowTrust[0]}</span> 信赖尚浅（${lowTrust[1].好感度}/100），多与其私下交谈，少把她当工具使用。`);
     }
     if (free) {
-      lines.push(`<span class="person">${free[0]}</span> 当前自由，可派往侦察、产业突破或战场支援。`);
+      lines.push(`<span class="person">${free[0]}</span> 当前自由，可派往侦察、产业突破、医疗支援或隐秘事务。`);
     }
     if (lines.length === 0) {
       lines.push('诸位女巫各司其职，本周可静观其变。');
@@ -2101,14 +2454,14 @@ const WitchModule = {
 
     return `
       <div class="witch-counsel">
-        <div class="counsel-title">📜 内 廷 参 议</div>
+        <div class="counsel-title">📜 议 事 厅 低 语</div>
         ${lines.map(l => `<div class="counsel-line">${l}</div>`).join('')}
       </div>
     `;
   },
 
   renderDanger(churchThreat, riskLevel){
-    const advice = churchThreat >= 60 ? '审判官随时可能造访领地，<strong>本周不宜公开派遣女巫</strong>。'
+    const advice = churchThreat >= 60 ? '审判官随时可能造访领地，<strong>本周不宜公开动用女巫</strong>。'
                  : churchThreat >= 35 ? '教廷耳目渐多，女巫驻守城防或炼金应注意伪装。'
                  : '教廷暂未察觉，可继续推进女巫系统建设。';
     return `
@@ -2129,9 +2482,25 @@ function trustStage(v){
   return '依赖';
 }
 
-function handleWitchTalk(name){ console.log('[召见女巫]', name); sendActionToAI('witch_talk', null, '召见 ' + name); }
-function handleWitchDispatch(name){ console.log('[派遣女巫]', name); sendActionToAI('witch_dispatch', null, '派遣 ' + name); }
-function handleWitchRest(name){ console.log('[安排休整 / 查看]', name); sendActionToAI('witch_rest', null, name); }
+function handleWitchTalk(name){
+  const text = `请${name}入议事厅，于炉火旁听取她近期的状态、诉求与隐忧。`;
+  console.log('[请入议事厅]', name);
+  writeToChatInput(text, { title:'议事厅传唤已写入', effect:`${name}将被请至议事厅` });
+}
+function handleWitchDispatch(name){
+  const text = `向${name}授予委任：`;
+  console.log('[女巫委任]', name);
+  writeToChatInput(text, { title:'委任状已备好', effect:'补完地点或事务' });
+}
+function handleWitchRest(name){
+  const w = gameData.女巫?.[name] || {};
+  const ui = witchUiState(w.状态);
+  const text = ['tired','injured'].includes(ui)
+    ? `准许${name}休养三日，并由医馆与侍从照看，不得再派外勤。`
+    : `查阅${name}的近况、驻地报告与可承担事务。`;
+  console.log('[休养 / 查阅]', name);
+  writeToChatInput(text, { title:'女巫卷宗已写入', effect:'行动草稿已进入输入框' });
+}
 
 /* ============================================ */
 /* Tab 内容：领地总览（建筑+威胁+延时事件）*/
@@ -2219,7 +2588,7 @@ const OverviewModule = {
   renderDelayed(){
     const list = Object.entries(gameData.延时事件 || {});
     if (list.length === 0) {
-      return '<div class="dossier">当前无待触发的延时事件。批阅带「远期」效果的奏章后，会在此显示。</div>';
+      return '<div class="dossier">当前无待触发的延时事件。准允带「后续」效果的请愿后，会在此显示。</div>';
     }
     return `
       <div class="delayed-list">
