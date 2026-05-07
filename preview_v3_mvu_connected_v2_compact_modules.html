@@ -1556,20 +1556,20 @@ const MvuAdapter = {
     const gain = edict?.益 || '';
 
     // 耗（即时扣除）
-    const goldCost = cost.match(/猫币\s*(\d+)/);
+    const goldCost = cost.match(/猫币\s*[:：]?\s*[+\-−－]?\s*(\d+)/);
     if (goldCost) deltas.push({ path:'核心资源.猫币', delta:-parseInt(goldCost[1]), comment:`奏章耗：猫币 -${goldCost[1]}` });
 
-    const laborCost = cost.match(/劳力\s*(\d+)/);
+    const laborCost = cost.match(/劳力\s*[:：]?\s*[+\-−－]?\s*(\d+)/);
     if (laborCost) deltas.push({ path:'核心资源.空闲劳力', delta:-parseInt(laborCost[1]), comment:`奏章耗：劳力 -${laborCost[1]}` });
 
-    const moraleLoss = cost.match(/民心\s*-\s*(\d+)/);
+    const moraleLoss = cost.match(/民心\s*[:：]?\s*[\-−－]\s*(\d+)/);
     if (moraleLoss) deltas.push({ path:'民心', delta:-parseInt(moraleLoss[1]), comment:`奏章耗：民心 -${moraleLoss[1]}` });
 
     // 益（即时加成）
-    const goldGain = gain.match(/猫币\s*\+\s*(\d+)/);
+    const goldGain = gain.match(/猫币\s*[:：]?\s*\+?\s*(\d+)/);
     if (goldGain) deltas.push({ path:'核心资源.猫币', delta:parseInt(goldGain[1]), comment:`奏章益：猫币 +${goldGain[1]}` });
 
-    const moraleGain = gain.match(/民心\s*\+\s*(\d+)/);
+    const moraleGain = gain.match(/民心\s*[:：]?\s*\+\s*(\d+)/);
     if (moraleGain) deltas.push({ path:'民心', delta:parseInt(moraleGain[1]), comment:`奏章益：民心 +${moraleGain[1]}` });
 
     return deltas;
@@ -1841,6 +1841,7 @@ function renderVitals(){
                   : r.$人口警戒 === 'warn' ? '街巷渐挤'
                   : r.人口周增 > 0 ? '人烟渐旺' : '户籍稳定';
   const laborBusy = Math.max(0, (Number(r.劳力总数)||0) - (Number(r.空闲劳力)||0));
+  // 主数字显示“空闲劳力”，避免批准消耗劳力时因为已占用增加而看起来像 +。
   const laborStatus = r.$劳力警戒 === 'crit' ? '人手过载'
                     : r.$劳力警戒 === 'warn' ? '人手紧张'
                     : r.空闲劳力 > 0 ? '可再调派' : '人尽其用';
@@ -1884,13 +1885,13 @@ function renderVitals(){
       </div>
     </div>
 
-    <div class="vital labor ${statusClass(r.$劳力警戒)}" title="劳力：已用 ${laborBusy} / 总数 ${r.劳力总数} · 空闲 ${r.空闲劳力}">
+    <div class="vital labor ${statusClass(r.$劳力警戒)}" title="劳力：空闲 ${r.空闲劳力} / 总数 ${r.劳力总数} · 已占用 ${laborBusy}">
       <div class="vital-head">
         <span class="vital-name"><span class="icon">🛠️</span>劳 动 力</span>
         <span class="vital-trend flat">空闲 ${r.空闲劳力}</span>
       </div>
       <div class="vital-mainline">
-        <div class="vital-value" id="labor-val">${laborBusy}<span class="total"> / ${r.劳力总数}</span></div>
+        <div class="vital-value" id="labor-val">${r.空闲劳力}<span class="total"> / ${r.劳力总数}</span></div>
         <div class="vital-status">${laborStatus}</div>
       </div>
       <div class="vital-progress" style="--p:${pct(r.$劳力占比)}%"></div>
@@ -2273,19 +2274,19 @@ function simulateApproveEffects(edict){
   const cost = edict.耗 || '', gain = edict.益 || '';
   const r = gameData.核心资源;
 
-  const goldCost = cost.match(/猫币\s*(\d+)/);
+  const goldCost = cost.match(/猫币\s*[:：]?\s*[+\-−－]?\s*(\d+)/);
   if (goldCost) { r.猫币 -= parseInt(goldCost[1]); flashVital('gold-val', -parseInt(goldCost[1])); }
 
-  const laborCost = cost.match(/劳力\s*(\d+)/);
+  const laborCost = cost.match(/劳力\s*[:：]?\s*[+\-−－]?\s*(\d+)/);
   if (laborCost) { r.空闲劳力 -= parseInt(laborCost[1]); flashVital('labor-val', -parseInt(laborCost[1])); }
 
-  const goldGain = gain.match(/猫币\s*\+\s*(\d+)/);
+  const goldGain = gain.match(/猫币\s*[:：]?\s*\+?\s*(\d+)/);
   if (goldGain) { r.猫币 += parseInt(goldGain[1]); flashVital('gold-val', parseInt(goldGain[1])); }
 
-  const moraleGain = gain.match(/民心\s*\+\s*(\d+)/);
+  const moraleGain = gain.match(/民心\s*[:：]?\s*\+\s*(\d+)/);
   if (moraleGain) { gameData.民心 = clamp(gameData.民心 + parseInt(moraleGain[1])); flashVital('morale-val', parseInt(moraleGain[1])); }
 
-  const moraleLoss = cost.match(/民心\s*-\s*(\d+)/);
+  const moraleLoss = cost.match(/民心\s*[:：]?\s*[\-−－]\s*(\d+)/);
   if (moraleLoss) { gameData.民心 = clamp(gameData.民心 - parseInt(moraleLoss[1])); flashVital('morale-val', -parseInt(moraleLoss[1])); }
 
   recomputeDerived(gameData);
