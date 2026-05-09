@@ -349,6 +349,105 @@ body.low-perf .devil-clock .devil-num{ animation:none; }
 .edicts-scroll::-webkit-scrollbar{height:7px}
 .edicts-scroll::-webkit-scrollbar-track{background:rgba(80,40,10,.12);border-radius:4px}
 .edicts-scroll::-webkit-scrollbar-thumb{background:linear-gradient(90deg,var(--ink-fade),#8a5a2a);border-radius:4px}
+
+/* ★ 朱批后 · 在办（紧贴请愿池下方，工程倒计时与进度条） */
+.in-progress-zone{
+  margin-top:14px;
+  padding:10px 14px 12px;
+  background:linear-gradient(180deg,rgba(232,210,170,.42),rgba(212,180,130,.32));
+  border:1px solid rgba(122,90,42,.32);
+  border-radius:4px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4), 0 1px 0 rgba(80,40,10,.06);
+}
+.in-progress-zone.empty{ display:none; }
+.in-progress-head{
+  display:flex;align-items:center;gap:8px;
+  font-family:'Ma Shan Zheng',serif;font-size:14.5px;letter-spacing:3px;
+  color:var(--ink-mid);
+  cursor:pointer;user-select:none;
+  padding-bottom:6px;border-bottom:1px dashed rgba(122,90,42,.28);
+}
+.in-progress-head .ip-icon{font-size:13px}
+.in-progress-head .ip-en{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--ink-fade);font-weight:700;text-transform:uppercase;margin-left:2px}
+.in-progress-head .ip-count{
+  margin-left:auto;
+  font-family:'Cinzel',serif;font-size:11px;letter-spacing:1px;
+  color:var(--wax-red);font-weight:700;
+}
+.in-progress-head .ip-toggle{
+  font-family:'Cinzel',serif;font-size:11px;color:var(--ink-fade);
+  margin-left:6px;transition:transform .25s;
+}
+.in-progress-zone.collapsed .ip-toggle{ transform:rotate(-90deg); }
+.in-progress-zone.collapsed .in-progress-list{ display:none; }
+
+.in-progress-list{
+  display:flex;flex-direction:column;gap:6px;
+  margin-top:8px;
+  max-height:none;
+}
+.in-progress-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 110px 64px;
+  align-items:center;gap:10px;
+  padding:6px 8px;
+  background:rgba(252,242,220,.42);
+  border:1px solid rgba(122,90,42,.18);
+  border-radius:3px;
+  font-family:'ZCOOL XiaoWei',serif;font-size:12.5px;
+  transition:background .2s;
+}
+.in-progress-row:hover{ background:rgba(252,242,220,.78); }
+.in-progress-row.urgent{ border-left:2px solid var(--wax-red); }
+.in-progress-row.done{ border-left:2px solid var(--green); background:rgba(220,232,200,.5); }
+
+.ip-title{
+  display:flex;flex-direction:column;gap:1px;min-width:0;
+}
+.ip-title .ip-name{
+  font-size:13px;color:var(--ink-mid);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.ip-title .ip-meta{
+  font-size:10.5px;color:var(--ink-fade);font-style:italic;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+.ip-progress{
+  position:relative;
+  height:14px;
+  background:rgba(80,40,10,.10);
+  border:1px solid rgba(122,90,42,.30);
+  border-radius:2px;
+  overflow:hidden;
+}
+.ip-progress-fill{
+  position:absolute;left:0;top:0;bottom:0;
+  background:linear-gradient(90deg, #c9a247 0%, #a87e2a 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4);
+  transition:width .5s ease;
+}
+.in-progress-row.done .ip-progress-fill{
+  background:linear-gradient(90deg, #6b8f4a 0%, #4a6a32 100%);
+}
+.ip-progress-text{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Cinzel',serif;font-size:9.5px;font-weight:700;letter-spacing:.5px;
+  color:#3a2a14;
+  text-shadow:0 1px 0 rgba(255,255,255,.4);
+}
+
+.ip-countdown{
+  text-align:right;
+  font-family:'Cinzel',serif;font-size:11.5px;font-weight:700;
+  color:var(--ink-mid);
+  white-space:nowrap;
+}
+.ip-countdown.crit{ color:var(--wax-red); animation:ipBlink 1.2s ease-in-out infinite; }
+.ip-countdown.done{ color:var(--green); }
+@keyframes ipBlink{0%,100%{opacity:1}50%{opacity:.55}}
+body.low-perf .ip-countdown.crit{ animation:none; }
 .scroll-btn{
   position:absolute;top:50%;transform:translateY(-50%);
   width:30px;height:54px;
@@ -1229,6 +1328,18 @@ body.is-scrolling .module-panel{animation:none!important;}
       <button class="scroll-btn right" id="scroll-right" data-scroll-dir="1">›</button>
       <div class="edicts-scroll" id="edicts-scroll"></div>
     </div>
+
+    <!-- ★ 朱批后 · 在办：朱批奏章自动登记的延时事件 -->
+    <div class="in-progress-zone empty" id="in-progress-zone">
+      <div class="in-progress-head" id="in-progress-head" data-action="toggle-in-progress">
+        <span class="ip-icon">🛠</span>
+        <span>朱 批 后 · 在 办</span>
+        <span class="ip-en">Works in Progress</span>
+        <span class="ip-count" id="in-progress-count">0</span>
+        <span class="ip-toggle" id="in-progress-toggle">▾</span>
+      </div>
+      <div class="in-progress-list" id="in-progress-list"></div>
+    </div>
   </section>
 
   <!-- 4 Tab 区 -->
@@ -1311,9 +1422,9 @@ const MOCK_DATA = {
     大学:{等级:0,建造进度:25,减负效果:'解锁高级研发'},
   },
   延时事件:{
-    evt_1:{触发于:'3日后',效果描述:'北区粮食产量 +3%',来源:'卢卡水渠'},
-    evt_2:{触发于:'7日后',效果描述:'人口 +12，劳力 +6',来源:'流民安置'},
-    evt_3:{触发于:'12日后',效果描述:'解锁玻璃工坊',来源:'玻璃熔铸研发'},
+    evt_1:{触发回合:5, 起始回合:1, 效果描述:'北区粮食产量 +3%', 效果数据:'{"粮食周净产":3}', 来源:'卢卡水渠'},
+    evt_2:{触发回合:9, 起始回合:1, 效果描述:'人口 +12，劳力 +6', 效果数据:'{"人口":12,"劳力总数":6}', 来源:'流民安置'},
+    evt_3:{触发回合:14,起始回合:2, 效果描述:'解锁玻璃工坊', 效果数据:'{"_note":"unlock"}', 来源:'玻璃熔铸研发'},
   },
   // 女巫卷宗（升级版）
   女巫:{
@@ -1382,6 +1493,11 @@ let pendingDeltas = { gold:0, food:0, labor:0, morale:0, pop:0 };
 let currentTurnSnapshot = null;     // 完整 stat_data 快照
 let currentTurnNumber = null;       // 与快照配对的 时序.当前回合
 let turnLocalActions = [];          // 本轮在前端发生的 action，仅用于UI即时反馈与撤回提示
+
+// ★ 上次同步时见到的"魔鬼月剩余日"。前端用它检测天数推进，给未处理奏章倒计时。
+let lastDevilDays = null;
+// 防止"扣剩余日 → 写MVU → 触发 applyMvuData → 又扣一次"的递归
+let isAdvancingEdictDays = false;
 
 // ====== 性能补丁状态 ======
 // LOW_PERFORMANCE_MODE 开启后会减少复杂动画和阴影，适合 SillyTavern 内嵌环境保命。
@@ -1613,7 +1729,100 @@ function applyMvuData(raw){
   lastVirtualRange = '';
   renderAll();
   console.log('[HUD] MVU stat_data synced:', gameData);
+
+  // ★ 检测"天数"推进：若魔鬼月剩余日下降 N 天，则把所有未处理奏章的剩余日同样 -N。
+  //   只在非递归状态下执行，避免本函数自己写MVU 时再次触发本逻辑。
+  if (!isAdvancingEdictDays) {
+    advanceEdictDaysIfNeeded(raw);
+  }
+
   return true;
+}
+
+// ★ 把所有未处理奏章的剩余日按"天数推进量"扣减；剩余日 ≤ 0 的奏章自动从奏章池移除并写入批阅日志。
+//   触发条件：魔鬼月剩余日 比上次见到的减少了 N 天（N≥1）。
+//   注意：被前端写回 MVU 后会触发新一轮 applyMvuData，所以用 isAdvancingEdictDays 锁防递归。
+async function advanceEdictDaysIfNeeded(raw){
+  const newDevil = Number(raw?.时序?.魔鬼月剩余日);
+  if (!Number.isFinite(newDevil)) return;
+
+  // 首次同步：只记录基线，不扣
+  if (lastDevilDays == null) {
+    lastDevilDays = newDevil;
+    return;
+  }
+
+  const delta = lastDevilDays - newDevil; // 天数推进量
+  lastDevilDays = newDevil;
+  if (delta <= 0) return; // 没推进，或者倒退（异常）→ 不动
+
+  const edicts = raw?.奏章 || {};
+  const ids = Object.keys(edicts);
+  if (ids.length === 0) return;
+
+  // 收集要写的 _.set 语句
+  if (!MvuAdapter.isReady()) return;
+  const statements = [];
+  const expiredEntries = []; // {id, title, 呈报人}
+
+  for (const id of ids) {
+    const e = edicts[id];
+    if (!e) continue;
+    const oldDays = Number(e.剩余日);
+    if (!Number.isFinite(oldDays)) continue;
+    const newDays = oldDays - delta;
+
+    if (newDays > 0) {
+      // 仅扣剩余日
+      statements.push({
+        path: `奏章.${id}.剩余日`,
+        oldVal: oldDays,
+        newVal: newDays,
+        comment: `天数推进：${oldDays} → ${newDays}`,
+      });
+    } else {
+      // 过期：直接 remove，并准备一条"过期"批阅日志
+      statements.push({
+        path: `奏章.${id}`,
+        oldVal: e,
+        newVal: undefined,
+        comment: `奏章过期（剩余日 ${oldDays} ≤ 推进 ${delta}）`,
+      });
+      expiredEntries.push({ id, title: e.标题 || id, 呈报人: e.呈报人 || '' });
+    }
+  }
+
+  if (expiredEntries.length > 0) {
+    // 把"过期"条目追加到本轮批阅日志
+    const oldLog = raw[PENDING_LOG_PATH] || raw['本轮批阅日志'] || [];
+    const oldLogArr = Array.isArray(oldLog) ? oldLog : [];
+    const append = expiredEntries.map(x => ({
+      action: '过期',
+      id: x.id,
+      title: x.title,
+      呈报人: x.呈报人,
+      时间戳: Date.now(),
+    }));
+    statements.push({
+      path: '本轮批阅日志',
+      oldVal: oldLogArr,
+      newVal: [...oldLogArr, ...append],
+      comment: `${expiredEntries.length} 条奏章过期`,
+    });
+  }
+
+  if (statements.length === 0) return;
+
+  // 上锁，写回 MVU
+  isAdvancingEdictDays = true;
+  try {
+    await MvuAdapter.writeSets(statements);
+  } catch (err) {
+    console.error('[HUD] 天数推进写回失败:', err);
+  } finally {
+    // 解锁；本次写回触发的 applyMvuData 会重新读 lastDevilDays（已是最新），不会再扣
+    setTimeout(() => { isAdvancingEdictDays = false; }, 50);
+  }
 }
 
 function syncMvuOnce(){
@@ -1781,6 +1990,37 @@ const MvuAdapter = {
     //      }
     //    ）
 
+    // 3.5) ★ 朱批时自动登记延时事件，让"在办"面板能立刻显示工程进度。
+    //      AI 看到批阅日志中已有 前端已登记延时事件:true 时，不要重复 insert。
+    let delayedEventId = '';
+    if (action === 'approve' && edict) {
+      // 从奏章里抽出"工期"：耗字段中的 N日 表示完工总天数；缺失时用 远期 字段中的"N日后"；都没有则默认 5 日
+      const days = this.parseEdictDuration(edict);
+      const curTurn = Number(this.pickPath(snapshot, '时序.当前回合')) || 0;
+      delayedEventId = `evt_${edictId}_${Date.now().toString(36).slice(-5)}`;
+      const triggerTurn = curTurn + days;
+      const desc = (edict.远期 && edict.远期 !== '—' && edict.远期 !== '无')
+        ? edict.远期
+        : `${edict.标题}（朱批生效）`;
+      // 用 _.set 的 insert 写入新键
+      const oldEvents = this.pickPath(snapshot, '延时事件') || {};
+      if (!oldEvents[delayedEventId]) {
+        const newEvent = {
+          触发回合: triggerTurn,
+          起始回合: curTurn,
+          效果描述: desc,
+          效果数据: this.guessEffectDataJson(edict),
+          来源: edict.标题 || edictId,
+        };
+        statements.push({
+          path: `延时事件.${delayedEventId}`,
+          oldVal: undefined,
+          newVal: newEvent,
+          comment: `朱批登记延时事件：${edict.标题}（${days}日）`,
+        });
+      }
+    }
+
     // 4) 推批阅日志（让 AI 知道玩家做了什么）
     const oldLog = this.pickPath(snapshot, PENDING_LOG_PATH);
     const oldLogArr = Array.isArray(oldLog) ? oldLog : [];
@@ -1791,6 +2031,9 @@ const MvuAdapter = {
       呈报人: edict?.呈报人 || '',
       时间戳: Date.now(),
     };
+    if (action === 'approve' && delayedEventId) {
+      logEntry.前端已登记延时事件 = delayedEventId;
+    }
     statements.push({
       path: PENDING_LOG_PATH,
       oldVal: oldLogArr,
@@ -1799,6 +2042,38 @@ const MvuAdapter = {
     });
 
     return await this.writeSets(statements);
+  },
+
+  // ★ 从奏章字段里推断工期天数；找不到合理数字时返回默认 5
+  parseEdictDuration(edict){
+    if (!edict) return 5;
+    // 优先级：耗 > 远期 > 默认
+    const cost = edict.耗 || '';
+    const remote = edict.远期 || '';
+    const m1 = cost.match(/(\d+)\s*日/);
+    if (m1) return Math.max(1, Math.min(60, parseInt(m1[1], 10)));
+    const m2 = remote.match(/(\d+)\s*日(?:后|内)?/);
+    if (m2) return Math.max(1, Math.min(60, parseInt(m2[1], 10)));
+    return 5;
+  },
+
+  // ★ 从奏章"益/远期"字段提取效果，转 JSON 字符串（按 schema 要求）
+  guessEffectDataJson(edict){
+    const out = {};
+    const text = `${edict?.益 || ''} ${edict?.远期 || ''}`;
+    // 简单提取：识别 "粮食周净产 +3"、"民心 +2" 这种格式
+    const patterns = [
+      ['粮食周净产', /粮食周净产\s*[+＋]?\s*(\d+)/],
+      ['猫币周净', /猫币周净\s*[+＋]?\s*(\d+)/],
+      ['人口上限', /人口上限\s*[+＋]?\s*(\d+)/],
+      ['民心', /民心\s*[+＋]\s*(\d+)/],
+    ];
+    for (const [key, re] of patterns) {
+      const m = text.match(re);
+      if (m) out[key] = parseInt(m[1], 10);
+    }
+    if (Object.keys(out).length === 0) out._note = (edict?.远期 || edict?.益 || '').slice(0, 40);
+    return JSON.stringify(out);
   },
 
   // ★ 撤回本轮：用整份 stat_data 快照覆盖当前 stat_data，
@@ -2218,6 +2493,74 @@ function renderEdicts(){
   updateScrollButtons();
 }
 
+/* ============================================ */
+/* ★ 朱批后 · 在办：渲染朱批奏章自动登记的延时事件作为施工进度条 */
+/* ============================================ */
+function renderInProgress(){
+  const zone = $('#in-progress-zone');
+  const list = $('#in-progress-list');
+  const countEl = $('#in-progress-count');
+  if (!zone || !list || !countEl) return;
+
+  // 仅展示 来源带 "edict_" 前缀的延时事件（前端朱批时登记的，即玩家工程）；
+  // AI 自己 insert 的延时事件如果走同一字段也会一并显示，不强求过滤——以来源是否非空作判断。
+  const events = Object.entries(gameData.延时事件 || {});
+  const cur = Number(gameData?.时序?.当前回合) || 0;
+
+  if (events.length === 0) {
+    zone.classList.add('empty');
+    countEl.textContent = '0';
+    list.innerHTML = '';
+    return;
+  }
+  zone.classList.remove('empty');
+  countEl.textContent = events.length;
+
+  // 按"剩余回合"升序排序：最快完成的排前面
+  events.sort((a, b) => {
+    const ra = Math.max(0, Number(a[1].触发回合) - cur);
+    const rb = Math.max(0, Number(b[1].触发回合) - cur);
+    return ra - rb;
+  });
+
+  list.innerHTML = events.map(([id, e]) => {
+    // 一些条目可能用 起始回合 表达，前端朱批登记时会写入；缺失则按 触发回合-估算总时长 推算
+    const trigger = Number(e.触发回合) || cur;
+    const start = Number(e.起始回合);
+    let total, elapsed;
+    if (Number.isFinite(start) && trigger > start) {
+      total = trigger - start;
+      elapsed = Math.max(0, Math.min(total, cur - start));
+    } else {
+      // 没有 起始回合 时退化为：按"距离触发还有多少回合"估算，假设总长 = 当前剩余 + 1（避免除零）
+      const remain = Math.max(0, trigger - cur);
+      total = Math.max(1, remain + 1);
+      elapsed = Math.max(0, total - remain);
+    }
+    const remain = Math.max(0, total - elapsed);
+    const pct = total > 0 ? Math.min(100, Math.round(elapsed / total * 100)) : 0;
+    const isDone = remain === 0;
+    const isCrit = !isDone && remain <= 2;
+    const rowCls = isDone ? 'done' : (isCrit ? 'urgent' : '');
+    const cdCls = isDone ? 'done' : (isCrit ? 'crit' : '');
+    const cdText = isDone ? '已完工' : `余 ${remain} 日`;
+
+    return `
+      <div class="in-progress-row ${rowCls}" title="${escapeHtml(e.效果描述 || '')}${e.来源 ? '\n来源：' + escapeHtml(e.来源) : ''}">
+        <div class="ip-title">
+          <div class="ip-name">${escapeHtml(e.效果描述 || id)}</div>
+          <div class="ip-meta">${e.来源 ? '缘起：' + escapeHtml(e.来源) : '—'}</div>
+        </div>
+        <div class="ip-progress">
+          <div class="ip-progress-fill" style="width:${pct}%"></div>
+          <div class="ip-progress-text">${pct}%</div>
+        </div>
+        <div class="ip-countdown ${cdCls}">${cdText}</div>
+      </div>
+    `;
+  }).join('');
+}
+
 function renderVirtualEdicts({ reset = false, force = false } = {}){
   const scroll = $('#edicts-scroll');
   if (!scroll || scroll.dataset.virtual !== '1') return;
@@ -2435,6 +2778,8 @@ async function undoTurn(){
   pendingDeltas = { gold:0, food:0, labor:0, morale:0, pop:0 };
   turnLocalActions = [];
   recentActions = [];
+  // 撤回会让"魔鬼月剩余日"也回到撤回前；重置基线，避免下次同步又被当作推进
+  lastDevilDays = null;
 
   // 让本地数据立刻从 MVU 重新拉一遍
   lastMvuSnapshot = '';
@@ -3187,6 +3532,15 @@ function setupEventDelegation(){
     });
   }
 
+  // ★ 在办面板折叠/展开
+  const ipHead = document.getElementById('in-progress-head');
+  if (ipHead) {
+    ipHead.addEventListener('click', () => {
+      const zone = document.getElementById('in-progress-zone');
+      if (zone) zone.classList.toggle('collapsed');
+    });
+  }
+
   const edicts = $('#edicts-scroll');
   if (edicts) {
     edicts.addEventListener('click', e => {
@@ -3250,6 +3604,7 @@ function renderAll(){
   renderTimeBar();
   renderVitals();
   renderGovern();
+  renderInProgress();
   renderDeptNav();
   renderCurrentDeptIfNeeded(true);
   renderUndoButton();
