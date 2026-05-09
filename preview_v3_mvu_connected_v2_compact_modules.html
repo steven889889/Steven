@@ -49,17 +49,50 @@ body{
 .title-en{font-family:'Cinzel',serif;font-size:9px;letter-spacing:5px;color:var(--ink-fade);font-weight:700;text-transform:uppercase;margin-top:2px}
 .chrono-line{display:flex;justify-content:center;gap:22px;flex-wrap:wrap;margin-top:8px;font-family:'ZCOOL XiaoWei',serif;font-size:12.5px;color:var(--ink-soft)}
 .chrono-line .danger{color:var(--wax-red);font-weight:700}
-.devil-clock{align-items:baseline;gap:4px}
-.devil-num{
-  display:inline-block;min-width:44px;text-align:center;
-  font-family:'Cinzel','Noto Serif SC',serif;
-  font-size:31px;line-height:.85;font-weight:700;
-  color:#c40000;text-shadow:0 0 5px rgba(196,0,0,.32),1px 1px 0 rgba(40,0,0,.28);
-  transform:translateY(3px);
+
+/* ★ 魔鬼月警钟：猩红巨字 ★ */
+.devil-clock{
+  display:flex;align-items:baseline;justify-content:center;gap:6px;
+  margin-top:6px;
+  font-family:'Ma Shan Zheng',serif;
+  color:var(--wax-red);
+  letter-spacing:2px;
+  text-shadow:0 1px 0 rgba(255,255,255,.18), 0 0 12px rgba(168,50,40,.18);
 }
-.devil-num.warn{color:#d0441f;text-shadow:0 0 6px rgba(208,68,31,.34)}
-.devil-num.crit{color:#ff1515;text-shadow:0 0 8px rgba(255,21,21,.55),0 0 14px rgba(122,31,26,.35);animation:devilBeat 1.35s ease-in-out infinite}
-@keyframes devilBeat{0%,100%{transform:translateY(3px) scale(1)}50%{transform:translateY(3px) scale(1.13)}}
+.devil-clock .devil-pre,
+.devil-clock .devil-post{
+  font-size:14px;color:var(--wax-red-light);font-weight:700;letter-spacing:3px;
+}
+.devil-clock .devil-num{
+  font-family:'Cinzel',serif;
+  font-size:48px;
+  font-weight:700;
+  line-height:1;
+  color:var(--wax-red-bright);
+  background:linear-gradient(180deg,#d63a2c 0%, #9b1a14 100%);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+  text-shadow:0 2px 0 rgba(80,10,8,.18), 0 0 24px rgba(201,56,40,.35);
+  padding:0 4px;
+  position:relative;
+  animation:devilPulse 2.4s ease-in-out infinite;
+}
+.devil-clock.crit .devil-num{
+  animation:devilPulseCrit 1s ease-in-out infinite;
+}
+.devil-clock.crit .devil-pre,
+.devil-clock.crit .devil-post{
+  color:var(--wax-red-bright);
+}
+@keyframes devilPulse{
+  0%,100%{ transform:scale(1); filter:drop-shadow(0 0 0 rgba(201,56,40,0)); }
+  50%    { transform:scale(1.04); filter:drop-shadow(0 0 14px rgba(201,56,40,.55)); }
+}
+@keyframes devilPulseCrit{
+  0%,100%{ transform:scale(1); filter:drop-shadow(0 0 6px rgba(201,56,40,.4)); }
+  50%    { transform:scale(1.10); filter:drop-shadow(0 0 22px rgba(232,60,40,.85)); }
+}
+body.low-perf .devil-clock .devil-num{ animation:none; }
 
 /* ============================================ */
 /* ★ 紧凑资源仓：保留囤积感与紧迫感 ★ */
@@ -139,18 +172,31 @@ body{
   transition:color .3s;
 }
 .vital-value .total{font-size:10.5px;color:var(--ink-fade);font-weight:400;white-space:nowrap}
-.pending-impact{
-  margin-left:4px;padding:1px 5px;border-radius:8px;
-  font-family:'ZCOOL XiaoWei',serif;font-size:10px;font-weight:700;line-height:1.25;
-  background:rgba(255,244,214,.75);border:1px dashed rgba(120,80,40,.32);
-  white-space:nowrap;transform:translateY(-1px);
-}
-.pending-impact.minus{color:var(--wax-red);border-color:rgba(122,31,26,.42)}
-.pending-impact.plus{color:var(--green);border-color:rgba(61,90,42,.42)}
 .vital-value.flash-down{animation:flashDown .8s}
 .vital-value.flash-up{animation:flashUp .8s}
 @keyframes flashDown{0%{color:var(--wax-red-bright);transform:scale(1.08)}100%{transform:scale(1)}}
 @keyframes flashUp{0%{color:var(--green);transform:scale(1.08)}100%{transform:scale(1)}}
+
+/* ★ 预计变动挂签：批阅后即时显示，AI下一轮结算后由MVU回写消除 */
+.vital-pending{
+  display:inline-flex;align-items:center;gap:2px;
+  margin-left:6px;
+  font-family:'Cinzel','IM Fell English',serif;
+  font-size:11.5px;font-weight:700;font-style:italic;
+  padding:1px 6px;
+  border-radius:2px;
+  border:1px dashed currentColor;
+  letter-spacing:.5px;
+  vertical-align:middle;
+  animation:pendingFade .35s ease-out;
+}
+.vital-pending.minus{color:var(--wax-red);background:rgba(168,50,40,.08)}
+.vital-pending.plus{color:var(--green-light);background:rgba(60,90,40,.08)}
+.vital-pending::before{content:"≈";font-style:normal;margin-right:2px;opacity:.7}
+@keyframes pendingFade{
+  0%  { transform:translateY(-4px) scale(.85); opacity:0; }
+  100%{ transform:translateY(0) scale(1); opacity:1; }
+}
 
 .vital-progress{
   height:5px;background:rgba(60,30,10,.18);
@@ -237,25 +283,41 @@ body{
 }
 .govern-title{font-family:'Ma Shan Zheng',serif;font-size:24px;letter-spacing:4px}
 .govern-title-en{font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:var(--ink-fade);font-weight:700;text-transform:uppercase}
-.govern-extra{margin-left:auto;font-family:'ZCOOL XiaoWei',serif;font-size:12.5px;color:var(--ink-fade)}
+.govern-extra{margin-left:auto;font-family:'ZCOOL XiaoWei',serif;font-size:12.5px;color:var(--ink-fade);display:flex;align-items:center;gap:10px}
 .govern-extra .badge{
   background:var(--wax-red);color:#f4e4bc;
   padding:2px 9px;border-radius:11px;
   font-family:'Cinzel',serif;font-size:11px;font-weight:600;margin-left:5px;
   transition:all .3s;
 }
-.undo-reset-btn{
-  margin-left:10px;padding:5px 10px;
-  border:1px solid rgba(122,31,26,.55);
-  background:linear-gradient(180deg,rgba(255,244,214,.72),rgba(232,208,154,.42));
-  color:var(--wax-red);cursor:pointer;
-  font-family:'Ma Shan Zheng',serif;font-size:12px;letter-spacing:2px;
-  box-shadow:inset 0 1px 1px rgba(255,255,255,.35),0 1px 3px rgba(80,40,10,.14);
-}
-.undo-reset-btn:hover{background:rgba(122,31,26,.12);border-color:var(--wax-red);transform:translateY(-1px)}
-.undo-reset-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
 .govern-extra .badge.changed{animation:badgePop .5s ease-out}
 @keyframes badgePop{0%{transform:scale(1)}50%{transform:scale(1.4);background:var(--gold-bright)}100%{transform:scale(1)}}
+
+/* ★ 撤回本轮决断 */
+.btn-undo-turn{
+  display:inline-flex;align-items:center;gap:5px;
+  font-family:'ZCOOL XiaoWei',serif;font-size:11.5px;letter-spacing:1px;
+  padding:4px 10px;
+  background:linear-gradient(180deg,rgba(232,208,154,.6),rgba(212,180,130,.55));
+  color:var(--ink-soft);
+  border:1px solid var(--ink-fade);
+  border-radius:3px;
+  cursor:pointer;
+  transition:all .2s;
+}
+.btn-undo-turn:hover:not(:disabled){
+  background:linear-gradient(180deg,rgba(232,208,154,.92),rgba(201,162,71,.75));
+  color:var(--wax-red);
+  border-color:var(--wax-red);
+  box-shadow:0 0 8px rgba(122,31,26,.25);
+}
+.btn-undo-turn:disabled{
+  opacity:.35;cursor:not-allowed;
+}
+.btn-undo-turn .undo-count{
+  font-family:'Cinzel',serif;font-weight:700;color:var(--wax-red);
+  font-size:11.5px;
+}
 
 .gov-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
 .gov-tab{
@@ -1127,7 +1189,11 @@ body.is-scrolling .module-panel{animation:none!important;}
     <div class="chrono-line">
       <span>📜 <span id="time-display">—</span></span>
       <span><span id="weather-icon">☀️</span> <span id="weather-text">—</span></span>
-      <span class="danger devil-clock">🌑 魔鬼月余 <span id="devil-days" class="devil-num">—</span> 日</span>
+    </div>
+    <div class="devil-clock" id="devil-clock">
+      <span class="devil-pre">🌑 魔 鬼 月 余</span>
+      <span class="devil-num" id="devil-days">—</span>
+      <span class="devil-post">日</span>
     </div>
   </header>
 
@@ -1148,8 +1214,12 @@ body.is-scrolling .module-panel{animation:none!important;}
         <div class="govern-title">领 主 议 事 厅</div>
         <div class="govern-title-en">Council Hall · Petitions & Seals</div>
       </div>
-      <div class="govern-extra">待 决 请 愿 <span class="badge" id="badge-count">0</span></div>
-      <button class="undo-reset-btn" id="undo-reset-btn" title="恢复到本次打开状态栏时的初始变量">↶ 撤 销</button>
+      <div class="govern-extra">
+        <button class="btn-undo-turn" id="btn-undo-turn" data-action="undo-turn" disabled title="把本轮所有批阅恢复到回合开始时的状态（资源/奏章/计数/批阅日志全部还原）">
+          ↺ 撤 回 本 轮 <span class="undo-count" id="undo-count">0</span>
+        </button>
+        <span>待 决 请 愿 <span class="badge" id="badge-count">0</span></span>
+      </div>
     </div>
 
     <div class="gov-tabs" id="gov-tabs"></div>
@@ -1304,8 +1374,14 @@ let recentActions = [];
 let mvuConnected = false;
 let lastMvuSnapshot = '';
 let mvuPollTimer = null;
-let sessionInitialData = deepClone(gameData);
-let sessionInitialCaptured = false;
+
+// ★ 预计变动累计：每次批阅后挂在数字旁，AI 下一轮结算 MVU 时由 syncMvuOnce 自动清空
+//   key: 资源标识（gold/food/labor/morale/pop），value: 累计 delta
+let pendingDeltas = { gold:0, food:0, labor:0, morale:0, pop:0 };
+// ★ 本轮快照：进入新回合时建立，"撤回本轮决断"用它整体回滚 MVU
+let currentTurnSnapshot = null;     // 完整 stat_data 快照
+let currentTurnNumber = null;       // 与快照配对的 时序.当前回合
+let turnLocalActions = [];          // 本轮在前端发生的 action，仅用于UI即时反馈与撤回提示
 
 // ====== 性能补丁状态 ======
 // LOW_PERFORMANCE_MODE 开启后会减少复杂动画和阴影，适合 SillyTavern 内嵌环境保命。
@@ -1403,7 +1479,6 @@ function normalizeGameData(input, { fromMvu = true } = {}){
   d.民心 = clamp(d.民心 ?? 50);
   d.政务厅 = d.政务厅 || { 本场统计:{ 朱批:0, 驳回:0, 暂缓:0 } };
   d.政务厅.本场统计 = { 朱批:0, 驳回:0, 暂缓:0, ...(d.政务厅.本场统计 || {}) };
-  d.本轮批阅日志 = Array.isArray(d.本轮批阅日志) ? d.本轮批阅日志 : [];
   d.奏章 = d.奏章 || {};
   d.延时事件 = d.延时事件 || {};
   d.产业统计 = { 槽位上限: 0, 科技代差: 0, 周产猫币: 0, ...(d.产业统计 || {}) };
@@ -1495,11 +1570,45 @@ function applyMvuData(raw){
 
   lastMvuSnapshot = snapshot;
   mvuConnected = true;
+
+  // ★ 在用新数据覆盖 gameData 之前，先比对资源是否被外部（AI）改动
+  //   注意：此时 gameData 还是旧值，新值在 normalizeGameData(raw,...) 里
+  const oldR = gameData?.核心资源 || {};
+  const oldMorale = Number(gameData?.民心);
+  const oldTurn = Number(gameData?.时序?.当前回合);
+
   gameData = normalizeGameData(raw, { fromMvu:true });
-  if (!sessionInitialCaptured) {
-    sessionInitialData = deepClone(gameData);
-    sessionInitialCaptured = true;
+
+  const newR = gameData?.核心资源 || {};
+  const newMorale = Number(gameData?.民心);
+  const newTurn = Number(gameData?.时序?.当前回合);
+
+  // 情况 A：回合推进 → AI 已结算；快照、actions、pending 全清
+  if (currentTurnNumber != null && newTurn !== oldTurn) {
+    currentTurnSnapshot = null;
+    turnLocalActions = [];
+    pendingDeltas = { gold:0, food:0, labor:0, morale:0, pop:0 };
+    currentTurnNumber = newTurn;
+    console.log('[HUD] 回合推进至', newTurn, '，本轮状态全部清空');
+  } else {
+    // 情况 B：同回合，但资源被 AI 中途改动 → pending 已被实际写入
+    const resourceChanged =
+      Number(oldR.猫币) !== Number(newR.猫币) ||
+      Number(oldR.粮食) !== Number(newR.粮食) ||
+      Number(oldR.人口) !== Number(newR.人口) ||
+      Number(oldR.空闲劳力) !== Number(newR.空闲劳力) ||
+      oldMorale !== newMorale;
+    if (resourceChanged && turnLocalActions.length > 0) {
+      pendingDeltas = { gold:0, food:0, labor:0, morale:0, pop:0 };
+      // 资源已被外部结算，撤回意义已失：清掉本轮快照和本地 actions
+      turnLocalActions = [];
+      currentTurnSnapshot = null;
+      console.log('[HUD] 资源已被外部更新，pending 与本轮快照已清空');
+    }
+    // 同步 currentTurnNumber 到当前值（首次同步时也走这里）
+    if (currentTurnNumber == null) currentTurnNumber = newTurn;
   }
+
   markAllPanelsDirty();
   lastVirtualRange = '';
   renderAll();
@@ -1511,109 +1620,6 @@ function syncMvuOnce(){
   const raw = readMvuStatData();
   if (!raw) return false;
   return applyMvuData(raw);
-}
-
-
-function stripDerivedFields(value){
-  if (Array.isArray(value)) return value.map(stripDerivedFields);
-  if (!value || typeof value !== 'object') return value;
-  const out = {};
-  for (const [k,v] of Object.entries(value)) {
-    if (String(k).startsWith('$')) continue;
-    out[k] = stripDerivedFields(v);
-  }
-  return out;
-}
-
-function signedNumberText(n){
-  const v = Number(n) || 0;
-  return (v > 0 ? '+' : '') + v;
-}
-
-function extractResourceDelta(text, resource, defaultSign){
-  const src = String(text || '');
-  const esc = resource.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const patterns = [
-    new RegExp(`${esc}\\s*[:：]?\\s*([+\\-−－])?\\s*(\\d+)`, 'i'),
-    new RegExp(`([+\\-−－])?\\s*(\\d+)\\s*${esc}`, 'i'),
-  ];
-  for (const re of patterns) {
-    const m = src.match(re);
-    if (!m) continue;
-    const signRaw = m[1] || '';
-    const n = parseInt(m[2], 10);
-    if (!Number.isFinite(n)) continue;
-    const sign = /[-−－]/.test(signRaw) ? -1 : /[+]/.test(signRaw) ? 1 : defaultSign;
-    return sign * n;
-  }
-  return 0;
-}
-
-function parseEdictResourceDeltas(edict){
-  const cost = edict?.耗 || '';
-  const gain = edict?.益 || '';
-  const resources = [
-    ['猫币','核心资源.猫币'],
-    ['粮食','核心资源.粮食'],
-    ['劳力','核心资源.空闲劳力'],
-    ['民心','民心'],
-    ['人口','核心资源.人口'],
-  ];
-  const out = [];
-  for (const [name,path] of resources) {
-    const c = extractResourceDelta(cost, name, -1);
-    const g = extractResourceDelta(gain, name, 1);
-    const delta = c + g;
-    if (delta) out.push({ name, path, key:name, delta, comment:`预计影响：${name} ${signedNumberText(delta)}` });
-  }
-  return out;
-}
-
-function summarizeEdictImpact(edict){
-  const deltas = parseEdictResourceDeltas(edict);
-  if (!deltas.length) return '无直接数值变化';
-  return deltas.map(d => `${d.name}${signedNumberText(d.delta)}`).join(' · ');
-}
-
-function buildPendingLogEntry(edictId, action, edict){
-  const counterField = action === 'approve' ? '朱批' : action === 'reject' ? '驳回' : '暂缓';
-  return {
-    action: counterField,
-    id: edictId,
-    title: edict?.标题 || edictId,
-    呈报人: edict?.呈报人 || '',
-    耗: edict?.耗 || '',
-    益: edict?.益 || '',
-    远期: edict?.远期 || '',
-    预计影响: action === 'approve' ? summarizeEdictImpact(edict) : '不结算耗益',
-    前端已实际改动资源: false,
-    时间戳: Date.now(),
-  };
-}
-
-function appendLocalPendingLog(edictId, action, edict){
-  gameData.本轮批阅日志 = Array.isArray(gameData.本轮批阅日志) ? gameData.本轮批阅日志 : [];
-  gameData.本轮批阅日志.push(buildPendingLogEntry(edictId, action, edict));
-}
-
-function computePendingImpact(){
-  const acc = { 猫币:0, 粮食:0, 劳力:0, 民心:0, 人口:0 };
-  const log = Array.isArray(gameData.本轮批阅日志) ? gameData.本轮批阅日志 : [];
-  for (const entry of log) {
-    if (entry?.action !== '朱批' || entry?.前端已实际改动资源 === true) continue;
-    const fakeEdict = { 耗: entry.耗 || '', 益: entry.益 || '' };
-    for (const d of parseEdictResourceDeltas(fakeEdict)) {
-      if (d.key in acc) acc[d.key] += d.delta;
-    }
-  }
-  return acc;
-}
-
-function flashPredictedEffects(edict){
-  const map = { '猫币':'gold-val', '粮食':'food-val', '劳力':'labor-val', '民心':'morale-val', '人口':'pop-val' };
-  for (const d of parseEdictResourceDeltas(edict)) {
-    if (map[d.key]) flashVital(map[d.key], d.delta);
-  }
 }
 
 // ====== MVU 写入适配层 ======
@@ -1688,10 +1694,31 @@ const MvuAdapter = {
     return cur;
   },
 
-  // 解析奏章的"耗"和"益"字符串，仅用于预计影响提示。
-  // v8 起前端不再直接改核心资源，避免 AI / MVU 重复扣减。
+  // 解析奏章的"耗"和"益"字符串，提取出资源变动
+  // 返回 [{path, delta, comment}]
   parseEdictResourceDeltas(edict){
-    return parseEdictResourceDeltas(edict);
+    const deltas = [];
+    const cost = edict?.耗 || '';
+    const gain = edict?.益 || '';
+
+    // 耗（即时扣除）
+    const goldCost = cost.match(/猫币\s*[:：]?\s*[+\-−－]?\s*(\d+)/);
+    if (goldCost) deltas.push({ path:'核心资源.猫币', delta:-parseInt(goldCost[1]), comment:`奏章耗：猫币 -${goldCost[1]}` });
+
+    const laborCost = cost.match(/劳力\s*[:：]?\s*[+\-−－]?\s*(\d+)/);
+    if (laborCost) deltas.push({ path:'核心资源.空闲劳力', delta:-parseInt(laborCost[1]), comment:`奏章耗：劳力 -${laborCost[1]}` });
+
+    const moraleLoss = cost.match(/民心\s*[:：]?\s*[\-−－]\s*(\d+)/);
+    if (moraleLoss) deltas.push({ path:'民心', delta:-parseInt(moraleLoss[1]), comment:`奏章耗：民心 -${moraleLoss[1]}` });
+
+    // 益（即时加成）
+    const goldGain = gain.match(/猫币\s*[:：]?\s*\+?\s*(\d+)/);
+    if (goldGain) deltas.push({ path:'核心资源.猫币', delta:parseInt(goldGain[1]), comment:`奏章益：猫币 +${goldGain[1]}` });
+
+    const moraleGain = gain.match(/民心\s*[:：]?\s*\+\s*(\d+)/);
+    if (moraleGain) deltas.push({ path:'民心', delta:parseInt(moraleGain[1]), comment:`奏章益：民心 +${moraleGain[1]}` });
+
+    return deltas;
   },
 
   // 核心：批阅一张奏章后写入 MVU
@@ -1744,13 +1771,26 @@ const MvuAdapter = {
       comment: `府中统计：${counterField} ${oldCount} → ${oldCount + 1}`,
     });
 
-    // 3) v8：不再由前端真实扣减核心资源。
-    // 资源变化只作为"预计影响"写入批阅日志与输入框，由 AI 下一轮统一结算一次。
+    // 3) 资源变动不再由前端写入 MVU。
+    //    资源由 AI 在下一轮根据「本轮批阅日志」统一结算，避免前端先扣 + AI 又扣的双扣问题。
+    //    前端在 UI 上以「预计 -80」灰挂签即时反馈给玩家。
+    //    （历史代码保留为注释以便回滚：
+    //      if (action === 'approve' && edict) {
+    //        const deltas = this.parseEdictResourceDeltas(edict);
+    //        for (const d of deltas) { ... }
+    //      }
+    //    ）
 
     // 4) 推批阅日志（让 AI 知道玩家做了什么）
     const oldLog = this.pickPath(snapshot, PENDING_LOG_PATH);
     const oldLogArr = Array.isArray(oldLog) ? oldLog : [];
-    const logEntry = buildPendingLogEntry(edictId, action, edict);
+    const logEntry = {
+      action: counterField,
+      id: edictId,
+      title: edict?.标题 || edictId,
+      呈报人: edict?.呈报人 || '',
+      时间戳: Date.now(),
+    };
     statements.push({
       path: PENDING_LOG_PATH,
       oldVal: oldLogArr,
@@ -1761,23 +1801,31 @@ const MvuAdapter = {
     return await this.writeSets(statements);
   },
 
-  async restoreSnapshot(snapshot){
-    if (!this.isReady() || !snapshot) return false;
+  // ★ 撤回本轮：用整份 stat_data 快照覆盖当前 stat_data，
+  //   绕开 _.set 脚本，避免按 path 一条条写时 schema 派生字段冲突。
+  //   传入的 statDataSnapshot 是 stat_data 内容（与 readMvuStatData 返回的同结构）。
+  async replaceAllStatData(statDataSnapshot){
+    if (!this.isReady()) {
+      console.warn('[HUD] Mvu 未就绪，撤回失败');
+      return false;
+    }
+    if (!statDataSnapshot || typeof statDataSnapshot !== 'object') return false;
     const scope = { type:'message', message_id:'latest' };
-    let current;
-    try { current = Mvu.getMvuData(scope) || {}; }
-    catch (err) { console.error('[HUD] 读取 MVU 失败:', err); return false; }
-
-    const target = stripDerivedFields(snapshot);
-    const keys = Array.from(new Set([...Object.keys(current || {}), ...Object.keys(target || {})]))
-      .filter(k => !String(k).startsWith('$'));
-    const statements = keys.map(k => ({
-      path: k,
-      oldVal: current ? current[k] : undefined,
-      newVal: target ? target[k] : undefined,
-      comment: `撤销至初始：${k}`,
-    }));
-    return await this.writeSets(statements);
+    try {
+      // 拿当前 mvu data（含 stat_data + 其它包装），只替换 stat_data 子树
+      const current = Mvu.getMvuData(scope) || {};
+      const next = { ...current, stat_data: JSON.parse(JSON.stringify(statDataSnapshot)) };
+      await Mvu.replaceMvuData(next, scope);
+      // 立即更新本地快照
+      try {
+        const back = readMvuStatData();
+        if (back) lastMvuSnapshot = JSON.stringify(back);
+      } catch {}
+      return true;
+    } catch (err) {
+      console.error('[HUD] MVU replaceAllStatData 失败:', err);
+      return false;
+    }
   },
 };
 
@@ -1859,30 +1907,36 @@ function writeToChatInput(text, options = {}){
 
   input.dispatchEvent(new Event('input', { bubbles:true }));
   input.dispatchEvent(new Event('change', { bubbles:true }));
-  showCombo(options.title || '命令草稿已写入', options.effect || '已写入酒馆输入框，补全后即可发送','good');
+  if (!options.silent) {
+    showCombo(options.title || '命令草稿已写入', options.effect || '已写入酒馆输入框，补全后即可发送','good');
+  }
   return true;
 }
 
 async function sendActionToAI(action, edictId, edictTitle, witchName, draftText){
-  const map = { approve:'准允', reject:'驳回', defer:'搁置', privilege:'告示', witch_assign:'委任', witch_talk:'请入议事厅', witch_dispatch:'委任', witch_rest:'安置' };
+  // 普通批阅：写入"[领主裁定]"草稿到输入框，让 AI 在下一轮以玩家明确决断为准。
+  // 这是最稳的写法：MVU 写入「本轮批阅日志」做兜底信号，输入框文本做正向叙事锚点，双重保险。
+  const map = {
+    approve:'准允',
+    reject:'驳回',
+    defer:'搁置',
+    privilege:'告示',
+    witch_assign:'委任',
+    witch_talk:'请入议事厅',
+    witch_dispatch:'委任',
+    witch_rest:'安置',
+  };
   if (draftText) {
-    console.log('[HUD] action draft:', draftText);
+    // 女巫委任、特权告示等需要补全的场景：把草稿写入输入框由玩家补完。
     writeToChatInput(draftText);
     return;
   }
-
-  const edict = gameData.奏章?.[edictId] || {};
-  const title = edictTitle || edict.标题 || edictId || '未命名奏章';
-  const impact = action === 'approve' ? summarizeEdictImpact(edict) : '不结算耗益';
-  const text = [
-    `[领主裁定] ${map[action] || action}奏章《${title}》。`,
-    edict.呈报人 ? `呈报人：${String(edict.呈报人).replace(/^呈报人：/,'')}` : '',
-    action === 'approve' ? `预计影响：${impact}。` : '',
-    edict.远期 && edict.远期 !== '—' ? `后续：${edict.远期}。` : '',
-    action === 'defer' ? '前端已记录暂缓并减少该奏章剩余日；本轮变量更新不要重复减少剩余日。' : '前端只记录裁定、移除奏章与显示预计影响，尚未真实改动核心资源；请在本轮变量更新中只结算一次实际资源变化。'
-  ].filter(Boolean).join('\n');
-  console.log('[HUD] action:', text);
-  writeToChatInput(text, { title:'领主裁定已写入', effect:'发送后由 AI 统一承接并结算' });
+  const verb = map[action] || action;
+  const titlePart = edictTitle ? ` · ${edictTitle}` : '';
+  const witchPart = witchName ? ` · 委任「${witchName}」` : '';
+  const text = `[领主裁定] ${verb}${titlePart}${witchPart}`;
+  // 静默写入：不再弹"草稿已写入"toast，保持沉浸；toast 由 combo 系统在批阅完成后自然给。
+  writeToChatInput(text, { silent:true });
 }
 
 function setupMvuListener(){
@@ -1932,11 +1986,12 @@ function renderTimeBar(){
   const icons = { '晴':'☀️','阴':'☁️','雨':'🌧️','雪':'❄️','雾':'🌫️','大风':'💨','血月':'🌑' };
   $('#weather-icon').textContent = icons[t.天气] || '☀️';
   $('#weather-text').textContent = t.天气;
-  const devilDays = Math.max(0, Number(t.魔鬼月剩余日 ?? 0));
-  const devilNode = $('#devil-days');
-  if (devilNode) {
-    devilNode.textContent = devilDays;
-    devilNode.className = `devil-num ${devilDays <= 7 ? 'crit' : devilDays <= 14 ? 'warn' : ''}`;
+  $('#devil-days').textContent = t.魔鬼月剩余日;
+  // 警戒：14日内进入紧急脉动
+  const clock = $('#devil-clock');
+  if (clock) {
+    const days = Number(t.魔鬼月剩余日) || 0;
+    clock.classList.toggle('crit', days <= 14);
   }
 }
 
@@ -1955,15 +2010,18 @@ function renderVitals(){
   const statusClass = flag => flag === 'crit' ? 'crit' : flag === 'warn' ? 'warn' : '';
   const pct = v => Math.max(0, Math.min(100, Math.round(Number(v) || 0)));
 
+  // ★ 预计变动挂签：批阅后显示，AI 写回 MVU 时由 syncMvuOnce 自动重渲染并清空
+  const pendBadge = (key) => {
+    const v = pendingDeltas[key] || 0;
+    if (!v) return '';
+    const cls = v < 0 ? 'minus' : 'plus';
+    const sign = v > 0 ? '+' : '';
+    return `<span class="vital-pending ${cls}" title="批阅累计的预计变动，AI 在下一轮结算后归零">${sign}${v}</span>`;
+  };
+
   const foodTrend = trend(r.粮食周净产);
   const popTrend = trend(r.人口周增);
   const goldTrend = trend(r.猫币周净);
-  const pending = computePendingImpact();
-  const impactBadge = key => {
-    const v = Number(pending[key] || 0);
-    if (!v) return '';
-    return `<span class="pending-impact ${v < 0 ? 'minus' : 'plus'}">预计 ${signedNumberText(v)}</span>`;
-  };
 
   const foodStatus = r.$粮食警戒 === 'crit' ? '粮仓见底'
                    : r.$粮食警戒 === 'warn' ? '冬储吃紧'
@@ -1995,7 +2053,7 @@ function renderVitals(){
         <span class="vital-trend ${foodTrend.cls}">${foodTrend.arrow} ${foodTrend.text}</span>
       </div>
       <div class="vital-mainline">
-        <div class="vital-value" id="food-val">${r.粮食.toLocaleString()}<span class="total"> / ${r.粮食上限.toLocaleString()}</span>${impactBadge('粮食')}</div>
+        <div class="vital-value" id="food-val">${r.粮食.toLocaleString()}<span class="total"> / ${r.粮食上限.toLocaleString()}</span>${pendBadge('food')}</div>
         <div class="vital-status">${foodStatus}</div>
       </div>
       <div class="vital-progress" style="--p:${pct(r.$粮食占比)}%"></div>
@@ -2011,7 +2069,7 @@ function renderVitals(){
         <span class="vital-trend ${popTrend.cls}">${popTrend.arrow} ${popTrend.text}</span>
       </div>
       <div class="vital-mainline">
-        <div class="vital-value" id="pop-val">${r.人口}<span class="total"> / ${r.人口上限}</span>${impactBadge('人口')}</div>
+        <div class="vital-value" id="pop-val">${r.人口}<span class="total"> / ${r.人口上限}</span>${pendBadge('pop')}</div>
         <div class="vital-status">${popStatus}</div>
       </div>
       <div class="vital-progress" style="--p:${pct(r.$人口占比)}%"></div>
@@ -2027,7 +2085,7 @@ function renderVitals(){
         <span class="vital-trend flat">空闲 ${r.空闲劳力}</span>
       </div>
       <div class="vital-mainline">
-        <div class="vital-value" id="labor-val">${r.空闲劳力}<span class="total"> / ${r.劳力总数}</span>${impactBadge('劳力')}</div>
+        <div class="vital-value" id="labor-val">${r.空闲劳力}<span class="total"> / ${r.劳力总数}</span>${pendBadge('labor')}</div>
         <div class="vital-status">${laborStatus}</div>
       </div>
       <div class="vital-progress" style="--p:${pct(r.$劳力占比)}%"></div>
@@ -2045,7 +2103,7 @@ function renderVitals(){
         <span class="vital-trend ${goldTrend.cls}">${goldTrend.arrow} ${goldTrend.text}</span>
       </div>
       <div class="vital-mainline">
-        <div class="vital-value" id="gold-val">${r.猫币.toLocaleString()}<span class="total"> 枚</span>${impactBadge('猫币')}</div>
+        <div class="vital-value" id="gold-val">${r.猫币.toLocaleString()}<span class="total"> 枚</span>${pendBadge('gold')}</div>
         <div class="vital-status">${goldStatus}</div>
       </div>
       <div class="vital-foot">
@@ -2060,7 +2118,7 @@ function renderVitals(){
         <span class="morale-tag ${gameData.$民心阶段}">${gameData.$民心阶段}</span>
       </div>
       <div class="vital-mainline">
-        <div class="vital-value" id="morale-val">${gameData.民心}<span class="total"> / 100</span>${impactBadge('民心')}</div>
+        <div class="vital-value" id="morale-val">${gameData.民心}<span class="total"> / 100</span>${pendBadge('morale')}</div>
         <div class="vital-status">${moraleStatus}</div>
       </div>
       <div class="vital-progress" style="--p:${pct(gameData.民心)}%"></div>
@@ -2328,11 +2386,101 @@ function updateScrollButtons(){
 /* ============================================ */
 /* 批阅核心逻辑 */
 /* ============================================ */
+/* ============================================ */
+/* ★ 本轮快照 / 撤回本轮决断 */
+/* ============================================ */
+
+// 玩家本轮第一次操作时建立快照（资源/奏章/计数/批阅日志全包含），
+// 只要本轮还没把这些写入信号交给 AI，就允许整体回滚。
+function ensureTurnSnapshot(){
+  if (currentTurnSnapshot) return;
+  const live = readMvuStatData();
+  if (!live) {
+    // MVU 未就绪：把当前 gameData 当快照（fallback，仅用于本地预览）
+    try { currentTurnSnapshot = JSON.parse(JSON.stringify(gameData)); } catch { currentTurnSnapshot = null; }
+  } else {
+    try { currentTurnSnapshot = JSON.parse(JSON.stringify(live)); } catch { currentTurnSnapshot = null; }
+  }
+  currentTurnNumber = Number(gameData?.时序?.当前回合) || null;
+  console.log('[HUD] 已建立本轮快照，回合：', currentTurnNumber);
+}
+
+// 撤回本轮决断：把 stat_data 整体替换回快照，并清空所有本地预演状态。
+async function undoTurn(){
+  if (!currentTurnSnapshot) {
+    showCombo('无可撤回','本轮尚未做出任何批阅','bad');
+    return;
+  }
+  if (turnLocalActions.length === 0) {
+    showCombo('无可撤回','本轮尚未做出任何批阅','bad');
+    return;
+  }
+  if (isEdictProcessing) {
+    showCombo('稍候','上一份印玺尚未落定','bad');
+    return;
+  }
+  // 简单确认（避免误触）
+  const ok = (typeof window !== 'undefined' && typeof window.confirm === 'function')
+    ? window.confirm(`将撤回本轮 ${turnLocalActions.length} 次批阅，资源、奏章、计数、批阅日志将恢复到回合开始时的状态。是否继续？`)
+    : true;
+  if (!ok) return;
+
+  const okWrite = await MvuAdapter.replaceAllStatData(currentTurnSnapshot);
+  if (!okWrite) {
+    showCombo('撤回失败','MVU 未就绪或写入异常','bad');
+    return;
+  }
+
+  // 重置所有本地预演态
+  pendingDeltas = { gold:0, food:0, labor:0, morale:0, pop:0 };
+  turnLocalActions = [];
+  recentActions = [];
+
+  // 让本地数据立刻从 MVU 重新拉一遍
+  lastMvuSnapshot = '';
+  syncMvuOnce();
+  // 重新渲染撤回按钮（应进入 disabled）
+  renderUndoButton();
+
+  showCombo('本轮决断已撤回','卷宗复位 · 重新批阅','good');
+}
+
+// 渲染撤回按钮的可用状态与计数
+function renderUndoButton(){
+  const btn = document.getElementById('btn-undo-turn');
+  const cnt = document.getElementById('undo-count');
+  if (!btn || !cnt) return;
+  const n = turnLocalActions.length;
+  cnt.textContent = n;
+  btn.disabled = (n === 0);
+}
+
+// 监听回合推进（保留为辅助函数，逻辑已合并到 applyMvuData；外部调试时可用）
+function checkTurnAdvance(){
+  const cur = Number(gameData?.时序?.当前回合) || null;
+  if (currentTurnNumber == null) {
+    currentTurnNumber = cur;
+    return false;
+  }
+  if (cur !== currentTurnNumber) {
+    currentTurnSnapshot = null;
+    currentTurnNumber = cur;
+    turnLocalActions = [];
+    pendingDeltas = { gold:0, food:0, labor:0, morale:0, pop:0 };
+    renderUndoButton();
+    return true;
+  }
+  return false;
+}
+
 function handleAction(id, action){
   if (isEdictProcessing) return;
   const card = document.querySelector(`.edict-card[data-id="${id}"]`);
   if (!card || card.classList.contains('processing')) return;
   isEdictProcessing = true;
+
+  // ★ 进入新回合后第一次批阅时，建立本轮快照，用于"撤回本轮决断"
+  ensureTurnSnapshot();
 
   card.classList.add('processing');
   card.querySelectorAll('button').forEach(b => b.disabled = true);
@@ -2360,6 +2508,7 @@ function handleAction(id, action){
   card.appendChild(stamp);
   setTimeout(() => stamp.classList.add('active'), 50);
 
+  // 本场统计 +1（前端预演，MVU 在 commitEdictAction 中真正写入）
   if (action === 'approve') gameData.政务厅.本场统计.朱批++;
   else if (action === 'reject') gameData.政务厅.本场统计.驳回++;
   else gameData.政务厅.本场统计.暂缓++;
@@ -2367,11 +2516,13 @@ function handleAction(id, action){
   if (recentActions.length > 10) recentActions.shift();
 
   const edict = gameData.奏章[id];
-  appendLocalPendingLog(id, action, edict);
+
+  // ★ 仅"准允"累计资源预计变动（用于挂签显示）
   if (action === 'approve' && edict) {
-    renderVitals();
-    flashPredictedEffects(edict);
+    accumulatePendingDeltas(edict);
   }
+  // 记录本轮 action（用于撤销提示）
+  turnLocalActions.push({ id, action, title: edict?.标题 || id });
 
   if (action === 'defer') {
     setTimeout(() => {
@@ -2385,6 +2536,7 @@ function handleAction(id, action){
       await MvuAdapter.commitEdictAction(id, 'defer', edict);
       isEdictProcessing = false;
       renderGovern();
+      renderUndoButton();
       checkCombo();
     }, 1400);
     sendActionToAI('defer', id, edict?.标题);
@@ -2393,26 +2545,74 @@ function handleAction(id, action){
 
   setTimeout(() => card.classList.add(action === 'approve' ? 'fly-approve' : 'fly-reject'), 700);
 
-  // v8：批准只显示预计影响，不再直接修改核心资源数值。
-
   setTimeout(async () => {
-    // 写入 MVU：删奏章 + 府中统计 +1 + （朱批时）资源变动 + 批阅日志 +1
+    // 写入 MVU：删奏章 + 府中统计 +1 + 批阅日志 +1（资源不写，留给 AI 按日志结算）
     await MvuAdapter.commitEdictAction(id, action, edict);
     delete gameData.奏章[id];
     isEdictProcessing = false;
     markAllPanelsDirty();
     renderGovern();
     renderVitals();
+    renderUndoButton();
     checkCombo();
   }, 1600);
 
   sendActionToAI(action, id, edict?.标题);
 }
 
+// ★ 把奏章的"耗"和"益"按资源类别累加到 pendingDeltas
+function accumulatePendingDeltas(edict){
+  const cost = edict?.耗 || '';
+  const gain = edict?.益 || '';
+
+  const goldCost = cost.match(/猫币\s*[:：]?\s*[+\-−－]?\s*(\d+)/);
+  if (goldCost) pendingDeltas.gold -= parseInt(goldCost[1]);
+  const laborCost = cost.match(/劳力\s*[:：]?\s*[+\-−－]?\s*(\d+)/);
+  if (laborCost) pendingDeltas.labor -= parseInt(laborCost[1]);
+  const foodCost = cost.match(/粮食\s*[:：]?\s*[\-−－]\s*(\d+)/);
+  if (foodCost) pendingDeltas.food -= parseInt(foodCost[1]);
+  const popCost = cost.match(/人口\s*[:：]?\s*[\-−－]\s*(\d+)/);
+  if (popCost) pendingDeltas.pop -= parseInt(popCost[1]);
+  const moraleLoss = cost.match(/民心\s*[:：]?\s*[\-−－]\s*(\d+)/);
+  if (moraleLoss) pendingDeltas.morale -= parseInt(moraleLoss[1]);
+
+  const goldGain = gain.match(/猫币\s*[:：]?\s*\+?\s*(\d+)/);
+  if (goldGain) pendingDeltas.gold += parseInt(goldGain[1]);
+  const foodGain = gain.match(/粮食\s*[:：]?\s*\+?\s*(\d+)/);
+  if (foodGain) pendingDeltas.food += parseInt(foodGain[1]);
+  const popGain = gain.match(/人口\s*[:：]?\s*\+?\s*(\d+)/);
+  if (popGain) pendingDeltas.pop += parseInt(popGain[1]);
+  const laborGain = gain.match(/劳力\s*[:：]?\s*\+?\s*(\d+)/);
+  if (laborGain) pendingDeltas.labor += parseInt(laborGain[1]);
+  const moraleGain = gain.match(/民心\s*[:：]?\s*\+\s*(\d+)/);
+  if (moraleGain) pendingDeltas.morale += parseInt(moraleGain[1]);
+}
+
+// ⚠ 已弃用：早期"批阅即时改本地数字"的预演实现。
+// 现版本改为：批阅时把变动累加到 pendingDeltas 显示在挂签里，
+// 真正的资源结算交给 AI 在下一轮根据「本轮批阅日志」处理，避免双扣。
+// 保留代码仅供参考，不再被任何地方调用。
 function simulateApproveEffects(edict){
-  // v8 兼容保留：不再真实改动资源，只刷新预计影响。
-  renderVitals();
-  flashPredictedEffects(edict);
+  console.warn('[HUD] simulateApproveEffects is deprecated; pending挂签已替代它。');
+  const cost = edict.耗 || '', gain = edict.益 || '';
+  const r = gameData.核心资源;
+
+  const goldCost = cost.match(/猫币\s*[:：]?\s*[+\-−－]?\s*(\d+)/);
+  if (goldCost) { r.猫币 -= parseInt(goldCost[1]); flashVital('gold-val', -parseInt(goldCost[1])); }
+
+  const laborCost = cost.match(/劳力\s*[:：]?\s*[+\-−－]?\s*(\d+)/);
+  if (laborCost) { r.空闲劳力 -= parseInt(laborCost[1]); flashVital('labor-val', -parseInt(laborCost[1])); }
+
+  const goldGain = gain.match(/猫币\s*[:：]?\s*\+?\s*(\d+)/);
+  if (goldGain) { r.猫币 += parseInt(goldGain[1]); flashVital('gold-val', parseInt(goldGain[1])); }
+
+  const moraleGain = gain.match(/民心\s*[:：]?\s*\+\s*(\d+)/);
+  if (moraleGain) { gameData.民心 = clamp(gameData.民心 + parseInt(moraleGain[1])); flashVital('morale-val', parseInt(moraleGain[1])); }
+
+  const moraleLoss = cost.match(/民心\s*[:：]?\s*[\-−－]\s*(\d+)/);
+  if (moraleLoss) { gameData.民心 = clamp(gameData.民心 - parseInt(moraleLoss[1])); flashVital('morale-val', -parseInt(moraleLoss[1])); }
+
+  recomputeDerived(gameData);
 }
 
 function flashVital(elId, delta){
@@ -2947,28 +3147,6 @@ const OverviewModule = {
 };
 
 
-
-async function resetToSessionInitial(){
-  if (isEdictProcessing) return;
-  if (!sessionInitialData) {
-    showCombo('无可撤销基准','尚未捕获初始变量','bad');
-    return;
-  }
-  isEdictProcessing = true;
-  const btn = $('#undo-reset-btn');
-  if (btn) btn.disabled = true;
-  const target = normalizeGameData(sessionInitialData, { fromMvu:false });
-  const ok = await MvuAdapter.restoreSnapshot(target);
-  gameData = normalizeGameData(target, { fromMvu:false });
-  recentActions = [];
-  markAllPanelsDirty();
-  lastVirtualRange = '';
-  renderAll();
-  isEdictProcessing = false;
-  if (btn) btn.disabled = false;
-  showCombo(ok ? '已撤销至初始' : '已本地恢复', ok ? 'MVU 变量也已回滚' : 'MVU 未就绪，仅前端显示回滚', ok ? 'good' : 'bad');
-}
-
 /* ============================================ */
 /* 滚动性能：滚动中临时关闭非关键阴影/循环动画，停下后恢复 */
 /* ============================================ */
@@ -2992,15 +3170,20 @@ function setupScrollPerformance(){
 /* 一次性事件委托：避免反复 addEventListener / inline onclick */
 /* ============================================ */
 function setupEventDelegation(){
-  const undo = $('#undo-reset-btn');
-  if (undo) undo.addEventListener('click', resetToSessionInitial);
-
   const govTabs = $('#gov-tabs');
   if (govTabs) {
     govTabs.addEventListener('click', e => {
       const tab = e.target.closest('[data-gov-tab]');
       if (!tab) return;
       switchGovTab(tab.dataset.govTab);
+    });
+  }
+
+  // ★ 撤回本轮决断
+  const undoBtn = document.getElementById('btn-undo-turn');
+  if (undoBtn) {
+    undoBtn.addEventListener('click', () => {
+      undoTurn();
     });
   }
 
@@ -3069,6 +3252,7 @@ function renderAll(){
   renderGovern();
   renderDeptNav();
   renderCurrentDeptIfNeeded(true);
+  renderUndoButton();
 }
 
 setupEventDelegation();
