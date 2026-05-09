@@ -49,6 +49,17 @@ body{
 .title-en{font-family:'Cinzel',serif;font-size:9px;letter-spacing:5px;color:var(--ink-fade);font-weight:700;text-transform:uppercase;margin-top:2px}
 .chrono-line{display:flex;justify-content:center;gap:22px;flex-wrap:wrap;margin-top:8px;font-family:'ZCOOL XiaoWei',serif;font-size:12.5px;color:var(--ink-soft)}
 .chrono-line .danger{color:var(--wax-red);font-weight:700}
+.devil-clock{align-items:baseline;gap:4px}
+.devil-num{
+  display:inline-block;min-width:44px;text-align:center;
+  font-family:'Cinzel','Noto Serif SC',serif;
+  font-size:31px;line-height:.85;font-weight:700;
+  color:#c40000;text-shadow:0 0 5px rgba(196,0,0,.32),1px 1px 0 rgba(40,0,0,.28);
+  transform:translateY(3px);
+}
+.devil-num.warn{color:#d0441f;text-shadow:0 0 6px rgba(208,68,31,.34)}
+.devil-num.crit{color:#ff1515;text-shadow:0 0 8px rgba(255,21,21,.55),0 0 14px rgba(122,31,26,.35);animation:devilBeat 1.35s ease-in-out infinite}
+@keyframes devilBeat{0%,100%{transform:translateY(3px) scale(1)}50%{transform:translateY(3px) scale(1.13)}}
 
 /* ============================================ */
 /* ★ 紧凑资源仓：保留囤积感与紧迫感 ★ */
@@ -128,6 +139,14 @@ body{
   transition:color .3s;
 }
 .vital-value .total{font-size:10.5px;color:var(--ink-fade);font-weight:400;white-space:nowrap}
+.pending-impact{
+  margin-left:4px;padding:1px 5px;border-radius:8px;
+  font-family:'ZCOOL XiaoWei',serif;font-size:10px;font-weight:700;line-height:1.25;
+  background:rgba(255,244,214,.75);border:1px dashed rgba(120,80,40,.32);
+  white-space:nowrap;transform:translateY(-1px);
+}
+.pending-impact.minus{color:var(--wax-red);border-color:rgba(122,31,26,.42)}
+.pending-impact.plus{color:var(--green);border-color:rgba(61,90,42,.42)}
 .vital-value.flash-down{animation:flashDown .8s}
 .vital-value.flash-up{animation:flashUp .8s}
 @keyframes flashDown{0%{color:var(--wax-red-bright);transform:scale(1.08)}100%{transform:scale(1)}}
@@ -225,6 +244,16 @@ body{
   font-family:'Cinzel',serif;font-size:11px;font-weight:600;margin-left:5px;
   transition:all .3s;
 }
+.undo-reset-btn{
+  margin-left:10px;padding:5px 10px;
+  border:1px solid rgba(122,31,26,.55);
+  background:linear-gradient(180deg,rgba(255,244,214,.72),rgba(232,208,154,.42));
+  color:var(--wax-red);cursor:pointer;
+  font-family:'Ma Shan Zheng',serif;font-size:12px;letter-spacing:2px;
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.35),0 1px 3px rgba(80,40,10,.14);
+}
+.undo-reset-btn:hover{background:rgba(122,31,26,.12);border-color:var(--wax-red);transform:translateY(-1px)}
+.undo-reset-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
 .govern-extra .badge.changed{animation:badgePop .5s ease-out}
 @keyframes badgePop{0%{transform:scale(1)}50%{transform:scale(1.4);background:var(--gold-bright)}100%{transform:scale(1)}}
 
@@ -1098,7 +1127,7 @@ body.is-scrolling .module-panel{animation:none!important;}
     <div class="chrono-line">
       <span>📜 <span id="time-display">—</span></span>
       <span><span id="weather-icon">☀️</span> <span id="weather-text">—</span></span>
-      <span class="danger">🌑 魔鬼月余 <span id="devil-days">—</span> 日</span>
+      <span class="danger devil-clock">🌑 魔鬼月余 <span id="devil-days" class="devil-num">—</span> 日</span>
     </div>
   </header>
 
@@ -1120,6 +1149,7 @@ body.is-scrolling .module-panel{animation:none!important;}
         <div class="govern-title-en">Council Hall · Petitions & Seals</div>
       </div>
       <div class="govern-extra">待 决 请 愿 <span class="badge" id="badge-count">0</span></div>
+      <button class="undo-reset-btn" id="undo-reset-btn" title="恢复到本次打开状态栏时的初始变量">↶ 撤 销</button>
     </div>
 
     <div class="gov-tabs" id="gov-tabs"></div>
@@ -1274,6 +1304,8 @@ let recentActions = [];
 let mvuConnected = false;
 let lastMvuSnapshot = '';
 let mvuPollTimer = null;
+let sessionInitialData = deepClone(gameData);
+let sessionInitialCaptured = false;
 
 // ====== 性能补丁状态 ======
 // LOW_PERFORMANCE_MODE 开启后会减少复杂动画和阴影，适合 SillyTavern 内嵌环境保命。
@@ -1371,6 +1403,7 @@ function normalizeGameData(input, { fromMvu = true } = {}){
   d.民心 = clamp(d.民心 ?? 50);
   d.政务厅 = d.政务厅 || { 本场统计:{ 朱批:0, 驳回:0, 暂缓:0 } };
   d.政务厅.本场统计 = { 朱批:0, 驳回:0, 暂缓:0, ...(d.政务厅.本场统计 || {}) };
+  d.本轮批阅日志 = Array.isArray(d.本轮批阅日志) ? d.本轮批阅日志 : [];
   d.奏章 = d.奏章 || {};
   d.延时事件 = d.延时事件 || {};
   d.产业统计 = { 槽位上限: 0, 科技代差: 0, 周产猫币: 0, ...(d.产业统计 || {}) };
@@ -1463,6 +1496,10 @@ function applyMvuData(raw){
   lastMvuSnapshot = snapshot;
   mvuConnected = true;
   gameData = normalizeGameData(raw, { fromMvu:true });
+  if (!sessionInitialCaptured) {
+    sessionInitialData = deepClone(gameData);
+    sessionInitialCaptured = true;
+  }
   markAllPanelsDirty();
   lastVirtualRange = '';
   renderAll();
@@ -1474,6 +1511,109 @@ function syncMvuOnce(){
   const raw = readMvuStatData();
   if (!raw) return false;
   return applyMvuData(raw);
+}
+
+
+function stripDerivedFields(value){
+  if (Array.isArray(value)) return value.map(stripDerivedFields);
+  if (!value || typeof value !== 'object') return value;
+  const out = {};
+  for (const [k,v] of Object.entries(value)) {
+    if (String(k).startsWith('$')) continue;
+    out[k] = stripDerivedFields(v);
+  }
+  return out;
+}
+
+function signedNumberText(n){
+  const v = Number(n) || 0;
+  return (v > 0 ? '+' : '') + v;
+}
+
+function extractResourceDelta(text, resource, defaultSign){
+  const src = String(text || '');
+  const esc = resource.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const patterns = [
+    new RegExp(`${esc}\\s*[:：]?\\s*([+\\-−－])?\\s*(\\d+)`, 'i'),
+    new RegExp(`([+\\-−－])?\\s*(\\d+)\\s*${esc}`, 'i'),
+  ];
+  for (const re of patterns) {
+    const m = src.match(re);
+    if (!m) continue;
+    const signRaw = m[1] || '';
+    const n = parseInt(m[2], 10);
+    if (!Number.isFinite(n)) continue;
+    const sign = /[-−－]/.test(signRaw) ? -1 : /[+]/.test(signRaw) ? 1 : defaultSign;
+    return sign * n;
+  }
+  return 0;
+}
+
+function parseEdictResourceDeltas(edict){
+  const cost = edict?.耗 || '';
+  const gain = edict?.益 || '';
+  const resources = [
+    ['猫币','核心资源.猫币'],
+    ['粮食','核心资源.粮食'],
+    ['劳力','核心资源.空闲劳力'],
+    ['民心','民心'],
+    ['人口','核心资源.人口'],
+  ];
+  const out = [];
+  for (const [name,path] of resources) {
+    const c = extractResourceDelta(cost, name, -1);
+    const g = extractResourceDelta(gain, name, 1);
+    const delta = c + g;
+    if (delta) out.push({ name, path, key:name, delta, comment:`预计影响：${name} ${signedNumberText(delta)}` });
+  }
+  return out;
+}
+
+function summarizeEdictImpact(edict){
+  const deltas = parseEdictResourceDeltas(edict);
+  if (!deltas.length) return '无直接数值变化';
+  return deltas.map(d => `${d.name}${signedNumberText(d.delta)}`).join(' · ');
+}
+
+function buildPendingLogEntry(edictId, action, edict){
+  const counterField = action === 'approve' ? '朱批' : action === 'reject' ? '驳回' : '暂缓';
+  return {
+    action: counterField,
+    id: edictId,
+    title: edict?.标题 || edictId,
+    呈报人: edict?.呈报人 || '',
+    耗: edict?.耗 || '',
+    益: edict?.益 || '',
+    远期: edict?.远期 || '',
+    预计影响: action === 'approve' ? summarizeEdictImpact(edict) : '不结算耗益',
+    前端已实际改动资源: false,
+    时间戳: Date.now(),
+  };
+}
+
+function appendLocalPendingLog(edictId, action, edict){
+  gameData.本轮批阅日志 = Array.isArray(gameData.本轮批阅日志) ? gameData.本轮批阅日志 : [];
+  gameData.本轮批阅日志.push(buildPendingLogEntry(edictId, action, edict));
+}
+
+function computePendingImpact(){
+  const acc = { 猫币:0, 粮食:0, 劳力:0, 民心:0, 人口:0 };
+  const log = Array.isArray(gameData.本轮批阅日志) ? gameData.本轮批阅日志 : [];
+  for (const entry of log) {
+    if (entry?.action !== '朱批' || entry?.前端已实际改动资源 === true) continue;
+    const fakeEdict = { 耗: entry.耗 || '', 益: entry.益 || '' };
+    for (const d of parseEdictResourceDeltas(fakeEdict)) {
+      if (d.key in acc) acc[d.key] += d.delta;
+    }
+  }
+  return acc;
+}
+
+function flashPredictedEffects(edict){
+  const map = { '猫币':'gold-val', '粮食':'food-val', '劳力':'labor-val', '民心':'morale-val', '人口':'pop-val' };
+  for (const d of parseEdictResourceDeltas(edict)) {
+    if (map[d.key]) flashVital(map[d.key], d.delta);
+  }
 }
 
 // ====== MVU 写入适配层 ======
@@ -1548,31 +1688,10 @@ const MvuAdapter = {
     return cur;
   },
 
-  // 解析奏章的"耗"和"益"字符串，提取出资源变动
-  // 返回 [{path, delta, comment}]
+  // 解析奏章的"耗"和"益"字符串，仅用于预计影响提示。
+  // v8 起前端不再直接改核心资源，避免 AI / MVU 重复扣减。
   parseEdictResourceDeltas(edict){
-    const deltas = [];
-    const cost = edict?.耗 || '';
-    const gain = edict?.益 || '';
-
-    // 耗（即时扣除）
-    const goldCost = cost.match(/猫币\s*(\d+)/);
-    if (goldCost) deltas.push({ path:'核心资源.猫币', delta:-parseInt(goldCost[1]), comment:`奏章耗：猫币 -${goldCost[1]}` });
-
-    const laborCost = cost.match(/劳力\s*(\d+)/);
-    if (laborCost) deltas.push({ path:'核心资源.空闲劳力', delta:-parseInt(laborCost[1]), comment:`奏章耗：劳力 -${laborCost[1]}` });
-
-    const moraleLoss = cost.match(/民心\s*-\s*(\d+)/);
-    if (moraleLoss) deltas.push({ path:'民心', delta:-parseInt(moraleLoss[1]), comment:`奏章耗：民心 -${moraleLoss[1]}` });
-
-    // 益（即时加成）
-    const goldGain = gain.match(/猫币\s*\+\s*(\d+)/);
-    if (goldGain) deltas.push({ path:'核心资源.猫币', delta:parseInt(goldGain[1]), comment:`奏章益：猫币 +${goldGain[1]}` });
-
-    const moraleGain = gain.match(/民心\s*\+\s*(\d+)/);
-    if (moraleGain) deltas.push({ path:'民心', delta:parseInt(moraleGain[1]), comment:`奏章益：民心 +${moraleGain[1]}` });
-
-    return deltas;
+    return parseEdictResourceDeltas(edict);
   },
 
   // 核心：批阅一张奏章后写入 MVU
@@ -1625,36 +1744,13 @@ const MvuAdapter = {
       comment: `府中统计：${counterField} ${oldCount} → ${oldCount + 1}`,
     });
 
-    // 3) 仅"朱批"时应用资源变动
-    if (action === 'approve' && edict) {
-      const deltas = this.parseEdictResourceDeltas(edict);
-      for (const d of deltas) {
-        const oldV = this.pickPath(snapshot, d.path);
-        if (typeof oldV === 'number') {
-          let newV = oldV + d.delta;
-          // 民心 0~100 夹断；其它资源不为负
-          if (d.path === '民心') newV = Math.max(0, Math.min(100, newV));
-          else if (newV < 0) newV = 0;
-          statements.push({
-            path: d.path,
-            oldVal: oldV,
-            newVal: newV,
-            comment: d.comment,
-          });
-        }
-      }
-    }
+    // 3) v8：不再由前端真实扣减核心资源。
+    // 资源变化只作为"预计影响"写入批阅日志与输入框，由 AI 下一轮统一结算一次。
 
     // 4) 推批阅日志（让 AI 知道玩家做了什么）
     const oldLog = this.pickPath(snapshot, PENDING_LOG_PATH);
     const oldLogArr = Array.isArray(oldLog) ? oldLog : [];
-    const logEntry = {
-      action: counterField,
-      id: edictId,
-      title: edict?.标题 || edictId,
-      呈报人: edict?.呈报人 || '',
-      时间戳: Date.now(),
-    };
+    const logEntry = buildPendingLogEntry(edictId, action, edict);
     statements.push({
       path: PENDING_LOG_PATH,
       oldVal: oldLogArr,
@@ -1662,6 +1758,25 @@ const MvuAdapter = {
       comment: `批阅日志 +1`,
     });
 
+    return await this.writeSets(statements);
+  },
+
+  async restoreSnapshot(snapshot){
+    if (!this.isReady() || !snapshot) return false;
+    const scope = { type:'message', message_id:'latest' };
+    let current;
+    try { current = Mvu.getMvuData(scope) || {}; }
+    catch (err) { console.error('[HUD] 读取 MVU 失败:', err); return false; }
+
+    const target = stripDerivedFields(snapshot);
+    const keys = Array.from(new Set([...Object.keys(current || {}), ...Object.keys(target || {})]))
+      .filter(k => !String(k).startsWith('$'));
+    const statements = keys.map(k => ({
+      path: k,
+      oldVal: current ? current[k] : undefined,
+      newVal: target ? target[k] : undefined,
+      comment: `撤销至初始：${k}`,
+    }));
     return await this.writeSets(statements);
   },
 };
@@ -1749,15 +1864,25 @@ function writeToChatInput(text, options = {}){
 }
 
 async function sendActionToAI(action, edictId, edictTitle, witchName, draftText){
-  // 此函数现已退化为日志记录器。
-  // 批阅奏章的真正信号通过 MvuAdapter.commitEdictAction 写入 stat_data.本轮批阅日志，
-  // AI 在下一轮自然从变量中识别玩家决断，无需污染输入框。
-  // 仅当显式传入 draftText 时（女巫委任、特权告示等手写场景）才仍写输入框。
   const map = { approve:'准允', reject:'驳回', defer:'搁置', privilege:'告示', witch_assign:'委任', witch_talk:'请入议事厅', witch_dispatch:'委任', witch_rest:'安置' };
-  const text = draftText || `[领主裁定] ${map[action]||action}${edictTitle ? ` · ${edictTitle}` : ''}${witchName?` · 委任「${witchName}」`:''}`;
+  if (draftText) {
+    console.log('[HUD] action draft:', draftText);
+    writeToChatInput(draftText);
+    return;
+  }
+
+  const edict = gameData.奏章?.[edictId] || {};
+  const title = edictTitle || edict.标题 || edictId || '未命名奏章';
+  const impact = action === 'approve' ? summarizeEdictImpact(edict) : '不结算耗益';
+  const text = [
+    `[领主裁定] ${map[action] || action}奏章《${title}》。`,
+    edict.呈报人 ? `呈报人：${String(edict.呈报人).replace(/^呈报人：/,'')}` : '',
+    action === 'approve' ? `预计影响：${impact}。` : '',
+    edict.远期 && edict.远期 !== '—' ? `后续：${edict.远期}。` : '',
+    action === 'defer' ? '前端已记录暂缓并减少该奏章剩余日；本轮变量更新不要重复减少剩余日。' : '前端只记录裁定、移除奏章与显示预计影响，尚未真实改动核心资源；请在本轮变量更新中只结算一次实际资源变化。'
+  ].filter(Boolean).join('\n');
   console.log('[HUD] action:', text);
-  if (draftText) writeToChatInput(draftText);
-  // 普通批阅不再写输入框，保持沉浸感。
+  writeToChatInput(text, { title:'领主裁定已写入', effect:'发送后由 AI 统一承接并结算' });
 }
 
 function setupMvuListener(){
@@ -1807,7 +1932,12 @@ function renderTimeBar(){
   const icons = { '晴':'☀️','阴':'☁️','雨':'🌧️','雪':'❄️','雾':'🌫️','大风':'💨','血月':'🌑' };
   $('#weather-icon').textContent = icons[t.天气] || '☀️';
   $('#weather-text').textContent = t.天气;
-  $('#devil-days').textContent = t.魔鬼月剩余日;
+  const devilDays = Math.max(0, Number(t.魔鬼月剩余日 ?? 0));
+  const devilNode = $('#devil-days');
+  if (devilNode) {
+    devilNode.textContent = devilDays;
+    devilNode.className = `devil-num ${devilDays <= 7 ? 'crit' : devilDays <= 14 ? 'warn' : ''}`;
+  }
 }
 
 /* ============================================ */
@@ -1828,6 +1958,12 @@ function renderVitals(){
   const foodTrend = trend(r.粮食周净产);
   const popTrend = trend(r.人口周增);
   const goldTrend = trend(r.猫币周净);
+  const pending = computePendingImpact();
+  const impactBadge = key => {
+    const v = Number(pending[key] || 0);
+    if (!v) return '';
+    return `<span class="pending-impact ${v < 0 ? 'minus' : 'plus'}">预计 ${signedNumberText(v)}</span>`;
+  };
 
   const foodStatus = r.$粮食警戒 === 'crit' ? '粮仓见底'
                    : r.$粮食警戒 === 'warn' ? '冬储吃紧'
@@ -1841,6 +1977,7 @@ function renderVitals(){
                   : r.$人口警戒 === 'warn' ? '街巷渐挤'
                   : r.人口周增 > 0 ? '人烟渐旺' : '户籍稳定';
   const laborBusy = Math.max(0, (Number(r.劳力总数)||0) - (Number(r.空闲劳力)||0));
+  // 主数字显示“空闲劳力”，避免批准消耗劳力时因为已占用增加而看起来像 +。
   const laborStatus = r.$劳力警戒 === 'crit' ? '人手过载'
                     : r.$劳力警戒 === 'warn' ? '人手紧张'
                     : r.空闲劳力 > 0 ? '可再调派' : '人尽其用';
@@ -1858,7 +1995,7 @@ function renderVitals(){
         <span class="vital-trend ${foodTrend.cls}">${foodTrend.arrow} ${foodTrend.text}</span>
       </div>
       <div class="vital-mainline">
-        <div class="vital-value" id="food-val">${r.粮食.toLocaleString()}<span class="total"> / ${r.粮食上限.toLocaleString()}</span></div>
+        <div class="vital-value" id="food-val">${r.粮食.toLocaleString()}<span class="total"> / ${r.粮食上限.toLocaleString()}</span>${impactBadge('粮食')}</div>
         <div class="vital-status">${foodStatus}</div>
       </div>
       <div class="vital-progress" style="--p:${pct(r.$粮食占比)}%"></div>
@@ -1874,7 +2011,7 @@ function renderVitals(){
         <span class="vital-trend ${popTrend.cls}">${popTrend.arrow} ${popTrend.text}</span>
       </div>
       <div class="vital-mainline">
-        <div class="vital-value" id="pop-val">${r.人口}<span class="total"> / ${r.人口上限}</span></div>
+        <div class="vital-value" id="pop-val">${r.人口}<span class="total"> / ${r.人口上限}</span>${impactBadge('人口')}</div>
         <div class="vital-status">${popStatus}</div>
       </div>
       <div class="vital-progress" style="--p:${pct(r.$人口占比)}%"></div>
@@ -1884,13 +2021,13 @@ function renderVitals(){
       </div>
     </div>
 
-    <div class="vital labor ${statusClass(r.$劳力警戒)}" title="劳力：已用 ${laborBusy} / 总数 ${r.劳力总数} · 空闲 ${r.空闲劳力}">
+    <div class="vital labor ${statusClass(r.$劳力警戒)}" title="劳力：空闲 ${r.空闲劳力} / 总数 ${r.劳力总数} · 已占用 ${laborBusy}">
       <div class="vital-head">
         <span class="vital-name"><span class="icon">🛠️</span>劳 动 力</span>
         <span class="vital-trend flat">空闲 ${r.空闲劳力}</span>
       </div>
       <div class="vital-mainline">
-        <div class="vital-value" id="labor-val">${laborBusy}<span class="total"> / ${r.劳力总数}</span></div>
+        <div class="vital-value" id="labor-val">${r.空闲劳力}<span class="total"> / ${r.劳力总数}</span>${impactBadge('劳力')}</div>
         <div class="vital-status">${laborStatus}</div>
       </div>
       <div class="vital-progress" style="--p:${pct(r.$劳力占比)}%"></div>
@@ -1908,7 +2045,7 @@ function renderVitals(){
         <span class="vital-trend ${goldTrend.cls}">${goldTrend.arrow} ${goldTrend.text}</span>
       </div>
       <div class="vital-mainline">
-        <div class="vital-value" id="gold-val">${r.猫币.toLocaleString()}<span class="total"> 枚</span></div>
+        <div class="vital-value" id="gold-val">${r.猫币.toLocaleString()}<span class="total"> 枚</span>${impactBadge('猫币')}</div>
         <div class="vital-status">${goldStatus}</div>
       </div>
       <div class="vital-foot">
@@ -1923,7 +2060,7 @@ function renderVitals(){
         <span class="morale-tag ${gameData.$民心阶段}">${gameData.$民心阶段}</span>
       </div>
       <div class="vital-mainline">
-        <div class="vital-value" id="morale-val">${gameData.民心}<span class="total"> / 100</span></div>
+        <div class="vital-value" id="morale-val">${gameData.民心}<span class="total"> / 100</span>${impactBadge('民心')}</div>
         <div class="vital-status">${moraleStatus}</div>
       </div>
       <div class="vital-progress" style="--p:${pct(gameData.民心)}%"></div>
@@ -2230,6 +2367,11 @@ function handleAction(id, action){
   if (recentActions.length > 10) recentActions.shift();
 
   const edict = gameData.奏章[id];
+  appendLocalPendingLog(id, action, edict);
+  if (action === 'approve' && edict) {
+    renderVitals();
+    flashPredictedEffects(edict);
+  }
 
   if (action === 'defer') {
     setTimeout(() => {
@@ -2251,9 +2393,7 @@ function handleAction(id, action){
 
   setTimeout(() => card.classList.add(action === 'approve' ? 'fly-approve' : 'fly-reject'), 700);
 
-  if (action === 'approve' && edict) {
-    simulateApproveEffects(edict);
-  }
+  // v8：批准只显示预计影响，不再直接修改核心资源数值。
 
   setTimeout(async () => {
     // 写入 MVU：删奏章 + 府中统计 +1 + （朱批时）资源变动 + 批阅日志 +1
@@ -2270,25 +2410,9 @@ function handleAction(id, action){
 }
 
 function simulateApproveEffects(edict){
-  const cost = edict.耗 || '', gain = edict.益 || '';
-  const r = gameData.核心资源;
-
-  const goldCost = cost.match(/猫币\s*(\d+)/);
-  if (goldCost) { r.猫币 -= parseInt(goldCost[1]); flashVital('gold-val', -parseInt(goldCost[1])); }
-
-  const laborCost = cost.match(/劳力\s*(\d+)/);
-  if (laborCost) { r.空闲劳力 -= parseInt(laborCost[1]); flashVital('labor-val', -parseInt(laborCost[1])); }
-
-  const goldGain = gain.match(/猫币\s*\+\s*(\d+)/);
-  if (goldGain) { r.猫币 += parseInt(goldGain[1]); flashVital('gold-val', parseInt(goldGain[1])); }
-
-  const moraleGain = gain.match(/民心\s*\+\s*(\d+)/);
-  if (moraleGain) { gameData.民心 = clamp(gameData.民心 + parseInt(moraleGain[1])); flashVital('morale-val', parseInt(moraleGain[1])); }
-
-  const moraleLoss = cost.match(/民心\s*-\s*(\d+)/);
-  if (moraleLoss) { gameData.民心 = clamp(gameData.民心 - parseInt(moraleLoss[1])); flashVital('morale-val', -parseInt(moraleLoss[1])); }
-
-  recomputeDerived(gameData);
+  // v8 兼容保留：不再真实改动资源，只刷新预计影响。
+  renderVitals();
+  flashPredictedEffects(edict);
 }
 
 function flashVital(elId, delta){
@@ -2823,6 +2947,28 @@ const OverviewModule = {
 };
 
 
+
+async function resetToSessionInitial(){
+  if (isEdictProcessing) return;
+  if (!sessionInitialData) {
+    showCombo('无可撤销基准','尚未捕获初始变量','bad');
+    return;
+  }
+  isEdictProcessing = true;
+  const btn = $('#undo-reset-btn');
+  if (btn) btn.disabled = true;
+  const target = normalizeGameData(sessionInitialData, { fromMvu:false });
+  const ok = await MvuAdapter.restoreSnapshot(target);
+  gameData = normalizeGameData(target, { fromMvu:false });
+  recentActions = [];
+  markAllPanelsDirty();
+  lastVirtualRange = '';
+  renderAll();
+  isEdictProcessing = false;
+  if (btn) btn.disabled = false;
+  showCombo(ok ? '已撤销至初始' : '已本地恢复', ok ? 'MVU 变量也已回滚' : 'MVU 未就绪，仅前端显示回滚', ok ? 'good' : 'bad');
+}
+
 /* ============================================ */
 /* 滚动性能：滚动中临时关闭非关键阴影/循环动画，停下后恢复 */
 /* ============================================ */
@@ -2846,6 +2992,9 @@ function setupScrollPerformance(){
 /* 一次性事件委托：避免反复 addEventListener / inline onclick */
 /* ============================================ */
 function setupEventDelegation(){
+  const undo = $('#undo-reset-btn');
+  if (undo) undo.addEventListener('click', resetToSessionInitial);
+
   const govTabs = $('#gov-tabs');
   if (govTabs) {
     govTabs.addEventListener('click', e => {
