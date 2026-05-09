@@ -1375,7 +1375,7 @@ body.is-scrolling .module-panel{animation:none!important;}
 const MOCK_DATA = {
   领主:{名称:'未命名领主',身份:'领主',称号:'无'},
   领地:{名称:'未命名领地',等级:'村落',风格:'边境开拓'},
-  时序: { 当前回合:1, 年份:1056, 季节:'春', 周次:3, 天气:'晴', 魔鬼月剩余日:42, $时间显示:'流浪历 1056 年 · 春 · 第 3 周' },
+  时序: { 世界日序:100, 魔鬼月起始日序:82, 年份:1056, 季节:'春', 周次:3, 天气:'晴', 魔鬼月剩余日:42, 当前回合:1, $时间显示:'流浪历 1056 年 · 春 · 第 3 周' },
   核心资源: {
     猫币:450, 猫币周净:-25,
     粮食:1240, 粮食上限:2000, 粮食周净产:-35,
@@ -1422,9 +1422,9 @@ const MOCK_DATA = {
     大学:{等级:0,建造进度:25,减负效果:'解锁高级研发'},
   },
   延时事件:{
-    evt_1:{触发回合:5, 起始回合:1, 效果描述:'北区粮食产量 +3%', 效果数据:'{"粮食周净产":3}', 来源:'卢卡水渠'},
-    evt_2:{触发回合:9, 起始回合:1, 效果描述:'人口 +12，劳力 +6', 效果数据:'{"人口":12,"劳力总数":6}', 来源:'流民安置'},
-    evt_3:{触发回合:14,起始回合:2, 效果描述:'解锁玻璃工坊', 效果数据:'{"_note":"unlock"}', 来源:'玻璃熔铸研发'},
+    evt_1:{触发于日序:105, 起始时日序:99, 效果描述:'北区粮食产量 +3%', 效果数据:'{"粮食周净产":3}', 来源:'卢卡水渠'},
+    evt_2:{触发于日序:109, 起始时日序:99, 效果描述:'人口 +12，劳力 +6', 效果数据:'{"人口":12,"劳力总数":6}', 来源:'流民安置'},
+    evt_3:{触发于日序:114,起始时日序:100,效果描述:'解锁玻璃工坊', 效果数据:'{"_note":"unlock"}', 来源:'玻璃熔铸研发'},
   },
   // 女巫卷宗（升级版）
   女巫:{
@@ -1489,13 +1489,13 @@ let mvuPollTimer = null;
 // ★ 预计变动累计：每次批阅后挂在数字旁，AI 下一轮结算 MVU 时由 syncMvuOnce 自动清空
 //   key: 资源标识（gold/food/labor/morale/pop），value: 累计 delta
 let pendingDeltas = { gold:0, food:0, labor:0, morale:0, pop:0 };
-// ★ 本轮快照：进入新回合时建立，"撤回本轮决断"用它整体回滚 MVU
-let currentTurnSnapshot = null;     // 完整 stat_data 快照
-let currentTurnNumber = null;       // 与快照配对的 时序.当前回合
+// ★ 本轮快照：玩家批阅前建立，"撤回本轮决断"用它整体回滚 MVU
+let currentTurnSnapshot = null;     // 完整 stat_data 快照（沿用旧变量名，含义已为"批阅前快照"）
+let snapshotDayPointer = null;      // 快照建立时的 时序.世界日序，用于检测时间推进失效快照
 let turnLocalActions = [];          // 本轮在前端发生的 action，仅用于UI即时反馈与撤回提示
 
-// ★ 上次同步时见到的"魔鬼月剩余日"。前端用它检测天数推进，给未处理奏章倒计时。
-let lastDevilDays = null;
+// ★ 上次同步时见到的"世界日序"。前端用它检测天数推进，给未处理奏章倒计时。
+let lastSyncedDayPointer = null;
 // 防止"扣剩余日 → 写MVU → 触发 applyMvuData → 又扣一次"的递归
 let isAdvancingEdictDays = false;
 
@@ -1569,14 +1569,25 @@ function normalizeGameData(input, { fromMvu = true } = {}){
   d.领地.$治理题名 = d.领地.$治理题名 || `${d.领地.名称}治理录`;
 
   d.时序 = {
-    当前回合: 1,
+    世界日序: 1,
+    魔鬼月起始日序: 1,
     年份: 1,
     季节: '春',
     周次: 1,
     天气: '晴',
     魔鬼月剩余日: 60,
+    当前回合: 1,
     ...(d.时序 || {}),
   };
+  // 兼容旧存档：若没有世界日序但有当前回合，把回合数当近似值（不重要的话纯做兜底）
+  if (d.时序.世界日序 == null || d.时序.世界日序 === 0) {
+    d.时序.世界日序 = Number(d.时序.当前回合) || 1;
+  }
+  if (d.时序.魔鬼月起始日序 == null) {
+    // 兜底：当前日序 - (60 - 剩余日) = 起始日序
+    const totalLen = 60;
+    d.时序.魔鬼月起始日序 = Math.max(1, Number(d.时序.世界日序) - (totalLen - Number(d.时序.魔鬼月剩余日 || totalLen)));
+  }
 
   d.核心资源 = {
     猫币: 0,
@@ -1687,27 +1698,26 @@ function applyMvuData(raw){
   lastMvuSnapshot = snapshot;
   mvuConnected = true;
 
-  // ★ 在用新数据覆盖 gameData 之前，先比对资源是否被外部（AI）改动
-  //   注意：此时 gameData 还是旧值，新值在 normalizeGameData(raw,...) 里
+  // ★ 在用新数据覆盖 gameData 之前，先比对资源/日序是否被外部（AI）改动
   const oldR = gameData?.核心资源 || {};
   const oldMorale = Number(gameData?.民心);
-  const oldTurn = Number(gameData?.时序?.当前回合);
+  const oldDay = Number(gameData?.时序?.世界日序);
 
   gameData = normalizeGameData(raw, { fromMvu:true });
 
   const newR = gameData?.核心资源 || {};
   const newMorale = Number(gameData?.民心);
-  const newTurn = Number(gameData?.时序?.当前回合);
+  const newDay = Number(gameData?.时序?.世界日序);
 
-  // 情况 A：回合推进 → AI 已结算；快照、actions、pending 全清
-  if (currentTurnNumber != null && newTurn !== oldTurn) {
+  // 情况 A：日序前进 → AI 推进了时间；快照、actions、pending 全清
+  if (snapshotDayPointer != null && Number.isFinite(newDay) && Number.isFinite(oldDay) && newDay !== oldDay) {
     currentTurnSnapshot = null;
     turnLocalActions = [];
     pendingDeltas = { gold:0, food:0, labor:0, morale:0, pop:0 };
-    currentTurnNumber = newTurn;
-    console.log('[HUD] 回合推进至', newTurn, '，本轮状态全部清空');
+    snapshotDayPointer = null;
+    console.log('[HUD] 时间推进 日序', oldDay, '→', newDay, '，本轮状态全部清空');
   } else {
-    // 情况 B：同回合，但资源被 AI 中途改动 → pending 已被实际写入
+    // 情况 B：同一日，但资源被 AI 中途改动 → pending 已被实际写入
     const resourceChanged =
       Number(oldR.猫币) !== Number(newR.猫币) ||
       Number(oldR.粮食) !== Number(newR.粮食) ||
@@ -1716,13 +1726,11 @@ function applyMvuData(raw){
       oldMorale !== newMorale;
     if (resourceChanged && turnLocalActions.length > 0) {
       pendingDeltas = { gold:0, food:0, labor:0, morale:0, pop:0 };
-      // 资源已被外部结算，撤回意义已失：清掉本轮快照和本地 actions
       turnLocalActions = [];
       currentTurnSnapshot = null;
+      snapshotDayPointer = null;
       console.log('[HUD] 资源已被外部更新，pending 与本轮快照已清空');
     }
-    // 同步 currentTurnNumber 到当前值（首次同步时也走这里）
-    if (currentTurnNumber == null) currentTurnNumber = newTurn;
   }
 
   markAllPanelsDirty();
@@ -1730,7 +1738,7 @@ function applyMvuData(raw){
   renderAll();
   console.log('[HUD] MVU stat_data synced:', gameData);
 
-  // ★ 检测"天数"推进：若魔鬼月剩余日下降 N 天，则把所有未处理奏章的剩余日同样 -N。
+  // ★ 检测日序推进：若世界日序前进 N 天，则把所有未处理奏章的剩余日同样 -N。
   //   只在非递归状态下执行，避免本函数自己写MVU 时再次触发本逻辑。
   if (!isAdvancingEdictDays) {
     advanceEdictDaysIfNeeded(raw);
@@ -1743,17 +1751,17 @@ function applyMvuData(raw){
 //   触发条件：魔鬼月剩余日 比上次见到的减少了 N 天（N≥1）。
 //   注意：被前端写回 MVU 后会触发新一轮 applyMvuData，所以用 isAdvancingEdictDays 锁防递归。
 async function advanceEdictDaysIfNeeded(raw){
-  const newDevil = Number(raw?.时序?.魔鬼月剩余日);
-  if (!Number.isFinite(newDevil)) return;
+  const newDay = Number(raw?.时序?.世界日序);
+  if (!Number.isFinite(newDay)) return;
 
   // 首次同步：只记录基线，不扣
-  if (lastDevilDays == null) {
-    lastDevilDays = newDevil;
+  if (lastSyncedDayPointer == null) {
+    lastSyncedDayPointer = newDay;
     return;
   }
 
-  const delta = lastDevilDays - newDevil; // 天数推进量
-  lastDevilDays = newDevil;
+  const delta = newDay - lastSyncedDayPointer; // 天数推进量
+  lastSyncedDayPointer = newDay;
   if (delta <= 0) return; // 没推进，或者倒退（异常）→ 不动
 
   const edicts = raw?.奏章 || {};
@@ -1778,7 +1786,7 @@ async function advanceEdictDaysIfNeeded(raw){
         path: `奏章.${id}.剩余日`,
         oldVal: oldDays,
         newVal: newDays,
-        comment: `天数推进：${oldDays} → ${newDays}`,
+        comment: `日序推进 +${delta}：剩余日 ${oldDays} → ${newDays}`,
       });
     } else {
       // 过期：直接 remove，并准备一条"过期"批阅日志
@@ -1818,9 +1826,8 @@ async function advanceEdictDaysIfNeeded(raw){
   try {
     await MvuAdapter.writeSets(statements);
   } catch (err) {
-    console.error('[HUD] 天数推进写回失败:', err);
+    console.error('[HUD] 日序推进写回失败:', err);
   } finally {
-    // 解锁；本次写回触发的 applyMvuData 会重新读 lastDevilDays（已是最新），不会再扣
     setTimeout(() => { isAdvancingEdictDays = false; }, 50);
   }
 }
@@ -1991,23 +1998,27 @@ const MvuAdapter = {
     //    ）
 
     // 3.5) ★ 朱批时自动登记延时事件，让"在办"面板能立刻显示工程进度。
-    //      AI 看到批阅日志中已有 前端已登记延时事件:true 时，不要重复 insert。
+    //      AI 看到批阅日志中已有 前端已登记延时事件 字段时，不要重复 insert。
+    //      延时事件用"世界日序"作为时间锚点，与回合无关。
     let delayedEventId = '';
     if (action === 'approve' && edict) {
       // 从奏章里抽出"工期"：耗字段中的 N日 表示完工总天数；缺失时用 远期 字段中的"N日后"；都没有则默认 5 日
       const days = this.parseEdictDuration(edict);
-      const curTurn = Number(this.pickPath(snapshot, '时序.当前回合')) || 0;
+      const curDay = Number(this.pickPath(snapshot, '时序.世界日序'));
+      // 兼容旧存档没有 世界日序 时退回到 当前回合
+      const startDay = Number.isFinite(curDay) && curDay > 0
+        ? curDay
+        : (Number(this.pickPath(snapshot, '时序.当前回合')) || 0);
       delayedEventId = `evt_${edictId}_${Date.now().toString(36).slice(-5)}`;
-      const triggerTurn = curTurn + days;
+      const triggerDay = startDay + days;
       const desc = (edict.远期 && edict.远期 !== '—' && edict.远期 !== '无')
         ? edict.远期
         : `${edict.标题}（朱批生效）`;
-      // 用 _.set 的 insert 写入新键
       const oldEvents = this.pickPath(snapshot, '延时事件') || {};
       if (!oldEvents[delayedEventId]) {
         const newEvent = {
-          触发回合: triggerTurn,
-          起始回合: curTurn,
+          触发于日序: triggerDay,
+          起始时日序: startDay,
           效果描述: desc,
           效果数据: this.guessEffectDataJson(edict),
           来源: edict.标题 || edictId,
@@ -2502,10 +2513,11 @@ function renderInProgress(){
   const countEl = $('#in-progress-count');
   if (!zone || !list || !countEl) return;
 
-  // 仅展示 来源带 "edict_" 前缀的延时事件（前端朱批时登记的，即玩家工程）；
-  // AI 自己 insert 的延时事件如果走同一字段也会一并显示，不强求过滤——以来源是否非空作判断。
   const events = Object.entries(gameData.延时事件 || {});
-  const cur = Number(gameData?.时序?.当前回合) || 0;
+  const cur = Number(gameData?.时序?.世界日序);
+  const curOrFallback = Number.isFinite(cur) && cur > 0
+    ? cur
+    : (Number(gameData?.时序?.当前回合) || 0); // 兼容旧存档
 
   if (events.length === 0) {
     zone.classList.add('empty');
@@ -2516,26 +2528,43 @@ function renderInProgress(){
   zone.classList.remove('empty');
   countEl.textContent = events.length;
 
-  // 按"剩余回合"升序排序：最快完成的排前面
+  // 统一抽出"触发日序"和"起始日序"，兼容旧字段（触发回合/起始回合）
+  const readTrigger = e => {
+    const v = Number(e.触发于日序);
+    if (Number.isFinite(v)) return v;
+    const legacy = Number(e.触发回合);
+    return Number.isFinite(legacy) ? legacy : NaN;
+  };
+  const readStart = e => {
+    const v = Number(e.起始时日序);
+    if (Number.isFinite(v)) return v;
+    const legacy = Number(e.起始回合);
+    return Number.isFinite(legacy) ? legacy : NaN;
+  };
+
+  // 按"剩余天数"升序：最快完成的排前面
   events.sort((a, b) => {
-    const ra = Math.max(0, Number(a[1].触发回合) - cur);
-    const rb = Math.max(0, Number(b[1].触发回合) - cur);
+    const ta = readTrigger(a[1]); const tb = readTrigger(b[1]);
+    const ra = Math.max(0, (Number.isFinite(ta) ? ta : Infinity) - curOrFallback);
+    const rb = Math.max(0, (Number.isFinite(tb) ? tb : Infinity) - curOrFallback);
     return ra - rb;
   });
 
   list.innerHTML = events.map(([id, e]) => {
-    // 一些条目可能用 起始回合 表达，前端朱批登记时会写入；缺失则按 触发回合-估算总时长 推算
-    const trigger = Number(e.触发回合) || cur;
-    const start = Number(e.起始回合);
+    const trigger = readTrigger(e);
+    const start = readStart(e);
     let total, elapsed;
-    if (Number.isFinite(start) && trigger > start) {
+    if (Number.isFinite(start) && Number.isFinite(trigger) && trigger > start) {
       total = trigger - start;
-      elapsed = Math.max(0, Math.min(total, cur - start));
-    } else {
-      // 没有 起始回合 时退化为：按"距离触发还有多少回合"估算，假设总长 = 当前剩余 + 1（避免除零）
-      const remain = Math.max(0, trigger - cur);
+      elapsed = Math.max(0, Math.min(total, curOrFallback - start));
+    } else if (Number.isFinite(trigger)) {
+      // 缺失起始日序：用"剩余天数+1"估算总长度，进度只能粗看
+      const remain = Math.max(0, trigger - curOrFallback);
       total = Math.max(1, remain + 1);
       elapsed = Math.max(0, total - remain);
+    } else {
+      // 完全没有时间字段，跳过
+      return '';
     }
     const remain = Math.max(0, total - elapsed);
     const pct = total > 0 ? Math.min(100, Math.round(elapsed / total * 100)) : 0;
@@ -2744,8 +2773,9 @@ function ensureTurnSnapshot(){
   } else {
     try { currentTurnSnapshot = JSON.parse(JSON.stringify(live)); } catch { currentTurnSnapshot = null; }
   }
-  currentTurnNumber = Number(gameData?.时序?.当前回合) || null;
-  console.log('[HUD] 已建立本轮快照，回合：', currentTurnNumber);
+  snapshotDayPointer = Number(gameData?.时序?.世界日序);
+  if (!Number.isFinite(snapshotDayPointer)) snapshotDayPointer = null;
+  console.log('[HUD] 已建立本轮快照，日序：', snapshotDayPointer);
 }
 
 // 撤回本轮决断：把 stat_data 整体替换回快照，并清空所有本地预演状态。
@@ -2762,9 +2792,8 @@ async function undoTurn(){
     showCombo('稍候','上一份印玺尚未落定','bad');
     return;
   }
-  // 简单确认（避免误触）
   const ok = (typeof window !== 'undefined' && typeof window.confirm === 'function')
-    ? window.confirm(`将撤回本轮 ${turnLocalActions.length} 次批阅，资源、奏章、计数、批阅日志将恢复到回合开始时的状态。是否继续？`)
+    ? window.confirm(`将撤回本轮 ${turnLocalActions.length} 次批阅，资源、奏章、计数、批阅日志将恢复到刚才的状态。是否继续？`)
     : true;
   if (!ok) return;
 
@@ -2778,13 +2807,12 @@ async function undoTurn(){
   pendingDeltas = { gold:0, food:0, labor:0, morale:0, pop:0 };
   turnLocalActions = [];
   recentActions = [];
-  // 撤回会让"魔鬼月剩余日"也回到撤回前；重置基线，避免下次同步又被当作推进
-  lastDevilDays = null;
+  // 撤回会让"世界日序"也回到撤回前；重置基线，避免下次同步又被当作推进
+  lastSyncedDayPointer = null;
+  snapshotDayPointer = null;
 
-  // 让本地数据立刻从 MVU 重新拉一遍
   lastMvuSnapshot = '';
   syncMvuOnce();
-  // 重新渲染撤回按钮（应进入 disabled）
   renderUndoButton();
 
   showCombo('本轮决断已撤回','卷宗复位 · 重新批阅','good');
@@ -2800,16 +2828,17 @@ function renderUndoButton(){
   btn.disabled = (n === 0);
 }
 
-// 监听回合推进（保留为辅助函数，逻辑已合并到 applyMvuData；外部调试时可用）
+// 已弃用：旧版"按回合检测"的辅助函数。新版逻辑已经合并进 applyMvuData，
+// 用世界日序变化作为推进信号。本函数保留仅做控制台调试用。
 function checkTurnAdvance(){
-  const cur = Number(gameData?.时序?.当前回合) || null;
-  if (currentTurnNumber == null) {
-    currentTurnNumber = cur;
+  const cur = Number(gameData?.时序?.世界日序);
+  if (snapshotDayPointer == null) {
+    snapshotDayPointer = Number.isFinite(cur) ? cur : null;
     return false;
   }
-  if (cur !== currentTurnNumber) {
+  if (Number.isFinite(cur) && cur !== snapshotDayPointer) {
     currentTurnSnapshot = null;
-    currentTurnNumber = cur;
+    snapshotDayPointer = cur;
     turnLocalActions = [];
     pendingDeltas = { gold:0, food:0, labor:0, morale:0, pop:0 };
     renderUndoButton();
